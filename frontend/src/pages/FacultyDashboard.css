@@ -1,0 +1,94 @@
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  background: radial-gradient(circle at top right, #0f172a, #020617);
+  color: white;
+}
+
+.sidebar {
+  width: 240px;
+  background: linear-gradient(180deg, #111933, #0c142a);
+  padding: 25px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  padding: 12px 0;
+  cursor: pointer;
+  color: #cbd5e1;
+  display: flex;
+  gap: 10px;
+}
+
+.sidebar ul li:hover {
+  color: #3b82f6;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filter-bar select,
+.search-box input {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #1e293b;
+  color: white;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #1e293b;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.table-container {
+  background: #1a223f;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #111933;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+}
+
+tr {
+  border-bottom: 1px solid #334155;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
+}

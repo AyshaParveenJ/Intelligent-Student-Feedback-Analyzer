@@ -1,0 +1,75 @@
+.feedback-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #020617;
+}
+
+.feedback-card {
+  background: #0f172a;
+  padding: 40px;
+  border-radius: 12px;
+  width: 500px;
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.feedback-card h2 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.feedback-card label {
+  display: block;
+  margin: 15px 0 8px;
+  color: #38bdf8;
+}
+
+.feedback-card input,
+.feedback-card textarea {
+  width: 95%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: white;
+}
+
+.feedback-card textarea {
+  height: 80px;
+}
+
+.rating-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.rating-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.rating-option input {
+  accent-color: #38bdf8;
+}
+
+.feedback-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 8px;
+  background: #16a34a;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.feedback-card button:hover {
+  background: #15803d;
+}
