@@ -49,31 +49,41 @@ function Login() {
       <div className="portal-card">
         <h2>{isSignup ? "Create Account" : "Portal Login"}</h2>
 
-        {isSignup && (
+        {/* Wrapping in a form with autoComplete="off" prevents the browser 
+            from injecting saved usernames/passwords automatically.
+        */}
+        <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+          {isSignup && (
+            <input
+              type="text"
+              placeholder="Full Name"
+              autoComplete="off"
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          )}
+
           <input
             type="text"
-            placeholder="Full Name"
-            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Email Address"
+            autoComplete="one-time-code" 
+            /* "one-time-code" is a trick to stop aggressive browser autofill */
+            onChange={(e) => setStudentId(e.target.value)}
           />
-        )}
 
-        <input
-          type="text"
-          placeholder="Email Address"
-          onChange={(e) => setStudentId(e.target.value)}
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            autoComplete="new-password" 
+            /* "new-password" prevents the browser from suggesting saved passwords */
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        {isSignup ? (
-          <button onClick={handleSignup}>SIGN UP</button>
-        ) : (
-          <button onClick={handleLogin}>SIGN IN</button>
-        )}
+          {isSignup ? (
+            <button type="button" onClick={handleSignup}>SIGN UP</button>
+          ) : (
+            <button type="button" onClick={handleLogin}>SIGN IN</button>
+          )}
+        </form>
 
         <p onClick={() => setIsSignup(!isSignup)}>
           {isSignup
