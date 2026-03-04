@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   FiHome, FiEdit, FiCheckCircle, FiClock, FiBell, 
-  FiHelpCircle, FiLogOut, FiChevronDown, FiCpu, FiUser 
+  FiHelpCircle, FiLogOut, FiChevronDown, FiCpu, FiUser ,FiLayers, FiRefreshCw, FiSend
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -14,6 +14,7 @@ function Dashboard() {
   const [showFeedbackMenu, setShowFeedbackMenu] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [view, setView] = useState("dashboard");
+  const [filterTab, setFilterTab] = useState("All");
 
   const [studentId, setStudentId] = useState("");
   const [department, setDepartment] = useState("");
@@ -29,6 +30,9 @@ function Dashboard() {
   const [feedbackData, setFeedbackData] = useState([]); 
   const [recentActivity, setRecentActivity] = useState(null);
 
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  
   useEffect(() => {
     const name = localStorage.getItem("fullName");
     const id = localStorage.getItem("studentId");
@@ -54,8 +58,10 @@ function Dashboard() {
       const res = await axios.get("http://localhost:5000/api/feedback/all");
       const myFeedback = res.data.filter(f => f.studentName === name);
       setFeedbackData(myFeedback); 
-      const types = myFeedback.map(f => f.type);
+      
+      const types = [...new Set(myFeedback.map(f => f.type))];
       setSubmittedTypes(types);
+      
       if (myFeedback.length > 0) {
         setRecentActivity(myFeedback[myFeedback.length - 1]);
       }
@@ -81,9 +87,21 @@ function Dashboard() {
     fetchUserStatus(studentName);
   };
 
+  const uniqueSubmissions = [...new Set(feedbackData.map(item => item.type))];
+
   const calculateProgress = () => {
-    const total = 4; 
-    return (submittedTypes.length / total) * 100;
+    const count = uniqueSubmissions.length;
+    const percentage = count * 25;
+    return Math.min(percentage, 100);
+  };
+
+  const filteredData = feedbackData.filter(item => 
+    filterTab === "All" ? true : item.type === filterTab
+  );
+
+  const handleViewDetails = (item) => {
+    setSelectedFeedback(item);
+    setShowDetailModal(true);
   };
 
   return (
@@ -104,7 +122,7 @@ function Dashboard() {
             </ul>
           )}
           <li onClick={() => setView("status")}><FiCheckCircle className="icon" /> My Feedback Status</li>
-          <li onClick={() => setView("status")}><FiClock className="icon" /> Feedback History</li>
+          <li onClick={() => setView("history")}><FiClock className="icon" /> Feedback History</li>
           <li><FiBell className="icon" /> Notifications</li>
           <li><FiHelpCircle className="icon" /> Help / Support</li>
           <li className="logout-item" onClick={() => { localStorage.clear(); navigate("/"); }}>
@@ -115,7 +133,7 @@ function Dashboard() {
 
       <div className="main-viewport">
         <div className="main-content-inner">
-          {view === "dashboard" ? (
+          {view === "dashboard" && (
             <>
               <header className="dashboard-header">
                 <div className="header-left">
@@ -142,7 +160,7 @@ function Dashboard() {
 
               <div className="action-buttons">
                 <button className="btn btn-blue" onClick={() => setShowFeedbackMenu(true)}>+ Give Feedback</button>
-                <button className="btn btn-purple" onClick={() => setView("status")}>View My Status</button>
+                <button className="btn btn-purple" onClick={() => setView("history")}>View History</button>
                 <button className="btn btn-teal">View Suggestions</button>
               </div>
 
@@ -171,22 +189,31 @@ function Dashboard() {
                           {submittedTypes.includes('Skills') ? "Submitted ✓" : "Pending..."}
                         </p>
                     </div>
+                    <div className="status-card events">
+                        <FiEdit className="card-icon" />
+                        <h4>Events Feedback</h4>
+                        <p className={submittedTypes.includes('Events') ? "text-success" : "text-pending"}>
+                          {submittedTypes.includes('Events') ? "Submitted ✓" : "Pending..."}
+                        </p>
+                    </div>
                   </div>
                   
                   <div className="progress-section">
-                    <div className="progress-info" style={{display: "flex", justifyContent: "space-between", marginBottom: "10px"}}>
+                    <div className="progress-container-inner">
+                      <div className="progress-info">
                         <span>Feedback Completion</span>
                         <span>{calculateProgress()}%</span>
-                    </div>
-                    <div className="progress-bar" style={{width: "100%", background: "#1e293b", height: "8px", borderRadius: "4px"}}>
-                        <div className="progress-fill" style={{ width: `${calculateProgress()}%`, background: "#3b82f6", height: "100%", borderRadius: "4px" }}></div>
+                      </div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${calculateProgress()}%` }}></div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="ai-summary-card" style={{background: "#0f172a", padding: "20px", borderRadius: "12px", border: "1px solid #1e293b"}}>
+                  <div className="ai-summary-card">
                     <h4>AI Summary</h4>
-                    <div className="ai-content" style={{display: "flex", gap: "15px", marginTop: "15px", alignItems: "center"}}>
-                      <FiCpu className="ai-icon" style={{fontSize: "2rem", color: "#22d3ee"}} />
+                    <div className="ai-content">
+                      <FiCpu className="ai-icon" />
                       <div>
                         <strong>Thank you for your feedback!</strong>
                         <p className="sub-text">Your inputs help us improve the academic quality at AYS.</p>
@@ -197,44 +224,88 @@ function Dashboard() {
 
                 <div className="right-column">
                   <h3 className="section-title">Recent Activity</h3>
-                  <div className="activity-card" style={{background: "#1e293b", padding: "20px", borderRadius: "12px", marginBottom: "20px"}}>
+                  <div className="activity-card">
                     {recentActivity ? (
-                        <div className="activity-item" style={{display: "flex", gap: "12px"}}>
+                        <div className="activity-item">
                             <FiClock className="act-icon" />
                             <div>
-                                <p className="act-time" style={{fontSize: "0.75rem", color: "#94a3b8"}}>Just Now</p>
+                                <p className="act-time">Just Now</p>
                                 <p className="act-desc">{recentActivity.type} Feedback Submitted</p>
                             </div>
                         </div>
                     ) : <p className="no-activity">No recent activity</p>}
                   </div>
-                  <div className="privacy-card" style={{background: "#1e293b", padding: "20px", borderRadius: "12px"}}>
+                  <div className="privacy-card">
                     <h4>Privacy</h4>
                     <p className="sub-text">Your feedback is confidential and used only for improvement.</p>
                   </div>
                 </div>
               </div>
             </>
-          ) : (
+          )}
+
+{view === "status" && (
             <div className="feedback-status-container">
               <h2 className="view-title">My Feedback Status</h2>
-              <p className="sub-text">View the status of your submitted feedback.</p>
+              <p className="sub-text">Overview of your submission progress.</p>
+              
+              <div className="status-summary-row" style={{ marginTop: "30px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
+                
+                {/* Box 1: Total Submitted */}
+                <div className="status-card stat-total">
+                  <div className="stat-header">
+                    <FiLayers className="card-icon" />
+                    <span>Total Submitted</span>
+                  </div>
+                  <h3>{feedbackData.length}</h3>
+                </div>
 
-              <div className="status-summary-row">
-                <div className="summary-card blue-glow">
-                  <FiCheckCircle className="sum-icon"/> <div><h3>1 Submitted</h3><p>Academic Feedback</p></div>
+                {/* Box 2: Under Review */}
+                <div className="status-card stat-progress">
+                  <div className="stat-header">
+                    <FiRefreshCw className="card-icon" />
+                    <span>Under Review</span>
+                  </div>
+                  <h3>2</h3> 
                 </div>
-                <div className="summary-card orange-glow">
-                  <FiEdit className="sum-icon"/> <div><h3>1 Submitted</h3><p>Training Feedback</p></div>
+
+                {/* Box 3: Reviewed */}
+                <div className="status-card stat-reviewed">
+                  <div className="stat-header">
+                    <FiCheckCircle className="card-icon" />
+                    <span>Reviewed</span>
+                  </div>
+                  <h3>{feedbackData.length > 0 ? feedbackData.length - 1 : 0}</h3>
                 </div>
-                <div className="summary-card dark-glow">
-                  <FiClock className="sum-icon"/> <div><h3>1 Pending</h3><p>Feedback</p></div>
+
+                {/* Box 4: Action Taken */}
+                <div className="status-card stat-action">
+                  <div className="stat-header">
+                    <FiSend className="card-icon" />
+                    <span>Action Taken</span>
+                  </div>
+                  <h3>1</h3>
                 </div>
+
               </div>
+            </div>
+          )}
 
-              <div className="filter-tabs">
-                <button className="active">All</button>
-                <button>Academic</button><button>Training</button><button>Skills</button><button>Events</button>
+          {view === "history" && (
+            <div className="feedback-status-container">
+              <h2 className="view-title">Feedback History</h2>
+              <p className="sub-text">Detailed log of all your submitted responses.</p>
+
+              <div className="filter-tabs" style={{marginTop: "20px"}}>
+                {["All", "Academic", "Training", "Skills", "Events"].map((tab) => (
+                  <button 
+                    key={tab}
+                    className={filterTab === tab ? "active" : ""} 
+                    onClick={() => setFilterTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
               </div>
 
               <div className="feedback-table-container">
@@ -242,29 +313,40 @@ function Dashboard() {
                 <table className="feedback-table">
                   <thead>
                     <tr>
-                      <th>Feedback Type</th>
-                      <th>Submitted On</th>
-                      <th>Status</th>
-                      <th>Status</th>
-                      <th>Actions</th>
+                      <th style={{ width: '20%', padding: '16px' }}>Feedback Type</th>
+                      <th style={{ width: '20%', padding: '16px' }}>Submitted On</th>
+                      <th style={{ width: '20%', padding: '16px' }}>Detail Status</th>
+                      <th style={{ width: '%', padding: '16px' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {feedbackData.map((item, index) => (
+                    {filteredData.map((item, index) => (
                       <tr key={index}>
                         <td>{item.type} Feedback</td>
-                        <td>{new Date(item.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</td>
-                        <td><span className="status-tag submitted">✓ Submitted</span></td>
-                        <td><span className="status-tag submitted-alt">✓ Submitted</span></td>
-                        <td><button className="btn-view-details">View Details</button></td>
+                        <td>{new Date(item.createdAt).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })}</td>
+                        <td>
+                          <span className="status-tag submitted-alt">
+                             ✓ Submitted
+                          </span>
+                        </td>
+                        <td>
+                          <button className="btn-view-details" onClick={() => handleViewDetails(item)}>View Details</button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 <div className="table-footer">
-                  <span>Showing {feedbackData.length} entries</span>
+                  <span>Showing {filteredData.length} entries</span>
                   <div className="pagination">
-                    <button className="pag-btn">‹</button><button className="pag-btn active">1</button><span>1/1</span><button className="pag-btn">›</button>
+                    <button className="pag-btn">‹</button>
+                    <button className="pag-btn active">1</button>
+                    <span>1/1</span>
+                    <button className="pag-btn">›</button>
                   </div>
                 </div>
               </div>
@@ -292,6 +374,61 @@ function Dashboard() {
                 {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={`Sem ${s}`}>Semester {s}</option>)}
              </select>
              <div className="modal-actions"><button className="btn-save" onClick={handleSave}>Save</button></div>
+          </div>
+        </div>
+      )}
+
+      {/* CLEAN ALIGNED VIEW DETAILS MODAL */}
+      {showDetailModal && selectedFeedback && (
+        <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
+          <div className="modal-box detail-modal" style={{ maxWidth: '450px', padding: '25px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="detail-header" style={{ marginBottom: '20px', textAlign: 'center' }}>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{selectedFeedback.type} Feedback Details</h3>
+            </div>
+            
+            <div className="detail-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
+                <span style={{ color: '#888' }}>
+                  {selectedFeedback.type === "Academic" ? "Course Name:" : 
+                   selectedFeedback.type === "Skills" ? "Skill Name:" : 
+                   selectedFeedback.type === "Events" ? "Event Name:" : "Title:"}
+                </span>
+                <span style={{ fontWeight: '600' }}>
+                   {selectedFeedback.courseName || selectedFeedback.skillName || selectedFeedback.eventName || selectedFeedback.title || "N/A"}
+                </span>
+              </div>
+
+              {selectedFeedback.facultyName && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
+                  <span style={{ color: '#888' }}>Faculty Name:</span>
+                  <span style={{ fontWeight: '600' }}>{selectedFeedback.facultyName}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
+                <span style={{ color: '#888' }}>Rating:</span>
+                <span style={{ color: '#4caf50', fontWeight: 'bold' }}>
+                  {/* Just showing the clean text rating like "Fair" or "Very Good" */}
+                  {selectedFeedback.rating?.replace(/\/5.*/, "") || "N/A"}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
+                <span style={{ color: '#888' }}>Submitted On:</span>
+                <span style={{ fontSize: '0.9rem' }}>{new Date(selectedFeedback.createdAt).toLocaleString()}</span>
+              </div>
+              
+              <div style={{ marginTop: '15px' }}>
+                <h4 style={{ color: '#888', marginBottom: '8px', fontSize: '1rem' }}>Suggestions:</h4>
+                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
+                  <p style={{ margin: 0, fontSize: '0.95rem' }}>{selectedFeedback.suggestions || "No suggestions provided."}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: '20px' }}>
+              <button className="btn-save" style={{ width: '100%' }} onClick={() => setShowDetailModal(false)}>Close</button>
+            </div>
           </div>
         </div>
       )}
