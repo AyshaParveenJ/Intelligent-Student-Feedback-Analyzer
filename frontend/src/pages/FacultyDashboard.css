@@ -264,3 +264,135 @@ th, td {
   color: white;
   cursor: pointer;
 }
+
+/* Container with the original deep blue/dark theme */
+/* Container Background */
+.view-feedback-section {
+  padding: 20px;
+  background: #0b1120; 
+  border-radius: 12px;
+}
+
+/* THE SHADED BOX: Reserved strictly for the filter controls */
+/* Container for all filter elements - now transparent to let individual blocks show */
+.filter-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+/* INDIVIDUAL BLOCKS for Type, Dept, and Year */
+.filter-block {
+  background: #1e293b; /* The shaded block color */
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  display: flex;
+  align-items: center;
+}
+
+/* Styled Selects inside the blocks */
+.filter-select {
+  background: #1e293b; /* Matches the block background */
+  color: #f1f5f9;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 140px;
+  /* Forces the browser to style the dropdown menu background */
+  appearance: none; 
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+.filter-select option {
+  background-color: #1e293b; /* Deep blue background for the list */
+  color: #f1f5f9;            /* Light text for the list */
+  padding: 10px;
+}
+
+/* Optional: Adds a custom arrow to replace the one hidden by 'appearance: none' */
+.filter-block::after {
+  content: '▼';
+  font-size: 10px;
+  color: #94a3b8;
+  margin-left: -15px;
+  pointer-events: none;
+}
+/* Search Box remains in its own block style */
+.filter-search-block {
+  display: flex;
+  align-items: center;
+  background: #1e293b;
+  padding: 8px 15px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-search-block input {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  width: 100%;
+  outline: none;
+}
+
+/* White Filter Button */
+.filter-btn-white {
+  background: #ffffff;
+  color: #0f172a;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px; /* Matches the block heights */
+}
+
+/* THE DATA AREA: No blocks, just clean alignment */
+.table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container th {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 15px 20px;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+}
+
+.table-container tr {
+  background: transparent; /* No block backgrounds for data rows */
+}
+
+.table-container td {
+  padding: 18px 20px;
+  color: #cbd5e1;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.5); /* Subtle line separator */
+}
+
+/* Typography styles */
+.td-type { color: #f8fafc; font-weight: 500; }
+.td-course { color: #f8fafc; font-weight: 500; }
+.td-faculty { color: #94a3b8; }
+.td-rating { color: #f1f5f9; }
+.td-suggestions { color: #94a3b8; font-style: italic; }
+
+/* Dynamic Rating Colors */
+.rating-very-good { color: #4ade80 !important; font-weight: 700; } /* Vibrant Green */
+.rating-good { color: #60a5fa !important; font-weight: 700; }      /* Bright Blue */
+.rating-fair { color: #fbbf24 !important; font-weight: 700; }      /* Amber/Yellow */
+.rating-poor { color: #f87171 !important; font-weight: 700; }      /* Soft Red */
+.rating-default { color: #cbd5e1; }                               /* Default Grey */

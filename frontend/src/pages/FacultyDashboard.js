@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   FiHome, FiClipboard, FiUsers, FiBarChart2, FiLogOut, FiSearch,
-  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp
+  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter
 } from "react-icons/fi";
 import "./FacultyDashboard.css";
 
@@ -16,7 +16,9 @@ function FacultyDashboard() {
   const [search, setSearch] = useState("");
 
   useEffect(() => { fetchFeedback(); }, []);
-  useEffect(() => { applyFilters(); }, [feedbacks, typeFilter, deptFilter, yearFilter, search]);
+  
+  // Initialize with all data on first load
+  useEffect(() => { setFiltered(feedbacks); }, [feedbacks]);
 
   const fetchFeedback = async () => {
     try {
@@ -27,16 +29,11 @@ function FacultyDashboard() {
 
   const applyFilters = () => {
     let data = [...feedbacks];
-    if (typeFilter) data = data.filter(f => f.feedbackType === typeFilter);
+    if (typeFilter) data = data.filter(f => (f.feedbackType === typeFilter || f.type === typeFilter));
     if (deptFilter) data = data.filter(f => f.department === deptFilter);
     if (yearFilter) data = data.filter(f => f.year === yearFilter);
-    if (search) data = data.filter(f => f.title.toLowerCase().includes(search.toLowerCase()));
+    if (search) data = data.filter(f => (f.title || "").toLowerCase().includes(search.toLowerCase()));
     setFiltered(data);
-  };
-
-  const deleteFeedback = async (id) => {
-    await axios.delete(`http://localhost:5000/api/feedback/${id}`);
-    fetchFeedback();
   };
 
   const ratingsMap = { "Poor": 1, "Fair": 2, "Good": 3, "Very Good": 4, "Excellent": 5 };
@@ -87,13 +84,15 @@ function FacultyDashboard() {
       </div>
 
       <div className="main-content">
-        <div className="admin-header-flex">
-            <h2>Welcome, Admin 👋</h2>
-            <div className="top-search">
-                <FiSearch />
-                <input type="text" placeholder="Search" />
-            </div>
-        </div>
+        {activeMenu === "dashboard" && (
+          <div className="admin-header-flex">
+              <h2>Welcome, Admin 👋</h2>
+              <div className="top-search">
+                  <FiSearch />
+                  <input type="text" placeholder="Search" />
+              </div>
+          </div>
+        )}
 
         {activeMenu === "dashboard" && (
           <div className="admin-front-page">
@@ -123,13 +122,7 @@ function FacultyDashboard() {
                   {dist.map(d => (
                     <div className="bar-wrapper" key={d.label}>
                       <span className="bar-percentage">{d.percentage}%</span>
-                      <div 
-                        className="bar-fill" 
-                        style={{ 
-                          height: `${Math.max(d.height, 5)}%`, 
-                          backgroundColor: d.color
-                        }}
-                      ></div>
+                      <div className="bar-fill" style={{ height: `${Math.max(d.height, 5)}%`, backgroundColor: d.color }}></div>
                       <span className="bar-label">{d.label}</span>
                     </div>
                   ))}
@@ -137,72 +130,110 @@ function FacultyDashboard() {
               </div>
 
               <div className="chart-box">
-                <div className="chart-header">
-                  <span>Sentiment Analysis</span>
-                </div>
+                <div className="chart-header"><span>Sentiment Analysis</span></div>
                 <div className="sentiment-content">
                   <div className="pie-wrapper">
-                    {/* FIXED: Using pie-chart-solid class and empty div */}
-                    <div 
-                      className="pie-chart-solid" 
-                      style={{ 
-                        background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` 
-                      }}
-                    ></div>
+                    <div className="pie-chart-solid" style={{ background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` }}></div>
                   </div>
                   <div className="sentiment-legend-boxed">
-                    <div className="legend-box-item">
-                      <span className="dot pos"></span> Positive <b className="val-text">{posP}%</b>
-                    </div>
-                    <div className="legend-box-item">
-                      <span className="dot neu"></span> Neutral <b className="val-text">{neuP}%</b>
-                    </div>
-                    <div className="legend-box-item">
-                      <span className="dot neg"></span> Negative <b className="val-text">{negP}%</b>
-                    </div>
+                    <div className="legend-box-item"><span className="dot pos"></span> Positive <b className="val-text">{posP}%</b></div>
+                    <div className="legend-box-item"><span className="dot neu"></span> Neutral <b className="val-text">{neuP}%</b></div>
+                    <div className="legend-box-item"><span className="dot neg"></span> Negative <b className="val-text">{negP}%</b></div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         )}
+{activeMenu === "view" && (
+  <div className="view-feedback-section">
+    <div className="filter-bar-container">
+      
+      {/* Each one is now in its own block */}
+      <div className="filter-block">
+        <select className="filter-select" onChange={e => setTypeFilter(e.target.value)}>
+          <option value="">Feedback Type</option>
+          <option>Academic</option>
+          <option>Training</option>
+          <option>Skills</option>
+          <option>Events</option>
+        </select>
+      </div>
 
-        {activeMenu === "view" && (
-          <div className="view-feedback-section">
-            <div className="filter-bar">
-              <select onChange={e => setTypeFilter(e.target.value)}>
-                <option value="">Feedback Type</option>
-                <option>Academic</option><option>Training</option><option>Skills</option><option>Events</option>
-              </select>
-              <select onChange={e => setDeptFilter(e.target.value)}>
-                <option value="">Department</option>
-                <option>Computer Science</option><option>Information Technology</option><option>Electronics</option><option>Mechanical</option>
-              </select>
-              <select onChange={e => setYearFilter(e.target.value)}>
-                <option value="">Year</option>
-                <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
-              </select>
-              <div className="search-box">
-                <FiSearch /><input type="text" placeholder="Search Course..." onChange={e => setSearch(e.target.value)} />
-              </div>
-            </div>
-            <div className="table-container">
-              <table>
-                <thead><tr><th>Type</th><th>Course / Training / Skill</th><th>Faculty</th><th>Rating</th><th>Suggestions</th><th>Delete</th></tr></thead>
-                <tbody>
-                  {filtered.map(item => (
-                    <tr key={item._id}>
-                      <td>{item.feedbackType}</td><td>{item.title}</td><td>{item.facultyName}</td>
-                      <td>{"⭐".repeat(ratingsMap[item.rating] || 0)}</td>
-                      <td>{item.suggestions}</td>
-                      <td><button className="delete-btn" onClick={() => deleteFeedback(item._id)}>Delete</button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+      <div className="filter-block">
+        <select className="filter-select" onChange={e => setDeptFilter(e.target.value)}>
+          <option value="">Department</option>
+          <option>Computer Science</option>
+          <option>Information Technology</option>
+          <option>Electronics</option>
+          <option>Mechanical</option>
+        </select>
+      </div>
+
+      <div className="filter-block">
+        <select className="filter-select" onChange={e => setYearFilter(e.target.value)}>
+          <option value="">Year</option>
+          <option>1st Year</option>
+          <option>2nd Year</option>
+          <option>3rd Year</option>
+          <option>4th Year</option>
+        </select>
+      </div>
+
+      {/* Search and Filter Button */}
+      <div className="filter-search-block">
+        <FiSearch color="#94a3b8" />
+        <input 
+          type="text" 
+          placeholder="Search Course..." 
+          onChange={e => setSearch(e.target.value)} 
+        />
+      </div>
+
+      <button className="filter-btn-white" onClick={applyFilters}>
+        <FiFilter size={18} /> Filter
+      </button>
+    </div>
+
+    {/* Table remains clean with simple lines */}
+    <div className="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Course / Training / Skill</th>
+            <th>Faculty</th>
+            <th>Rating</th>
+            <th>Suggestions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(item => {
+            const getRatingClass = (rating) => {
+              if (!rating) return "";
+              const r = rating.toLowerCase();
+              if (r.includes("very good") || r.includes("excellent")) return "rating-very-good";
+              if (r.includes("good")) return "rating-good";
+              if (r.includes("fair")) return "rating-fair";
+              if (r.includes("poor")) return "rating-poor";
+              return "";
+            };
+
+            return (
+              <tr key={item._id}>
+                <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
+                <td className="td-course">{item.title}</td>
+                <td className="td-faculty">{item.facultyName || item.faculty || "N/A"}</td>
+                <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
+                <td className="td-suggestions">{item.suggestions}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
