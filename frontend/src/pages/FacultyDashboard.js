@@ -1,12 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  FiHome,
-  FiClipboard,
-  FiUsers,
-  FiBarChart2,
-  FiLogOut,
-  FiSearch
+  FiHome, FiClipboard, FiUsers, FiBarChart2, FiLogOut, FiSearch,
+  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp
 } from "react-icons/fi";
 import "./FacultyDashboard.css";
 
@@ -14,50 +10,27 @@ function FacultyDashboard() {
   const [feedbacks, setFeedbacks] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [activeMenu, setActiveMenu] = useState("dashboard");
-
   const [typeFilter, setTypeFilter] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    fetchFeedback();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [feedbacks, typeFilter, deptFilter, yearFilter, search]);
+  useEffect(() => { fetchFeedback(); }, []);
+  useEffect(() => { applyFilters(); }, [feedbacks, typeFilter, deptFilter, yearFilter, search]);
 
   const fetchFeedback = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/feedback/all");
       setFeedbacks(res.data);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) { console.log(error); }
   };
 
   const applyFilters = () => {
     let data = [...feedbacks];
-
-    if (typeFilter) {
-      data = data.filter(f => f.feedbackType === typeFilter);
-    }
-
-    if (deptFilter) {
-      data = data.filter(f => f.department === deptFilter);
-    }
-
-    if (yearFilter) {
-      data = data.filter(f => f.year === yearFilter);
-    }
-
-    if (search) {
-      data = data.filter(f =>
-        f.title.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
+    if (typeFilter) data = data.filter(f => f.feedbackType === typeFilter);
+    if (deptFilter) data = data.filter(f => f.department === deptFilter);
+    if (yearFilter) data = data.filter(f => f.year === yearFilter);
+    if (search) data = data.filter(f => f.title.toLowerCase().includes(search.toLowerCase()));
     setFiltered(data);
   };
 
@@ -66,106 +39,169 @@ function FacultyDashboard() {
     fetchFeedback();
   };
 
+  const ratingsMap = { "Poor": 1, "Fair": 2, "Good": 3, "Very Good": 4, "Excellent": 5 };
+  const total = feedbacks.length;
+  
+  const avgRating = total > 0 
+    ? (feedbacks.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / total).toFixed(1)
+    : "0.0";
+
+  const feedbackCategories = [
+    { label: "Poor", color: "#ef4444" },
+    { label: "Fair", color: "#f97316" },
+    { label: "Very Good", color: "#fbbf24" },
+    { label: "Good", color: "#4ade80" },
+    { label: "Excellent", color: "#22d3ee" }
+  ];
+
+  const dist = feedbackCategories.map(cat => {
+    const count = feedbacks.filter(f => f.rating === cat.label).length;
+    const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : "0.0";
+    return { ...cat, percentage, height: total > 0 ? (count / total) * 100 : 0 };
+  });
+
+  const positive = feedbacks.filter(f => ["Very Good", "Excellent"].includes(f.rating)).length;
+  const neutral = feedbacks.filter(f => f.rating === "Good").length;
+  const negative = feedbacks.filter(f => ["Poor", "Fair"].includes(f.rating)).length;
+
+  const getPercent = (count) => (total > 0 ? Math.round((count / total) * 100) : 0);
+  const posP = getPercent(positive);
+  const neuP = getPercent(neutral);
+  const negP = getPercent(negative);
+
   return (
     <div className="dashboard-container">
-      {/* SIDEBAR */}
       <div className="sidebar">
         <h3>Main Menu</h3>
         <ul>
-          <li onClick={() => setActiveMenu("dashboard")}>
-            <FiHome className="icon" /> Dashboard
+          <li className={activeMenu === "dashboard" ? "active-link" : ""} onClick={() => setActiveMenu("dashboard")}>
+            <FiHome /> Dashboard
           </li>
-          <li onClick={() => setActiveMenu("view")}>
-            <FiClipboard className="icon" /> View Feedback
+          <li className={activeMenu === "view" ? "active-link" : ""} onClick={() => setActiveMenu("view")}>
+            <FiClipboard /> View Feedback
           </li>
-          <li><FiUsers className="icon" /> Students</li>
-          <li><FiBarChart2 className="icon" /> Analytics</li>
-          <li><FiLogOut className="icon" /> Logout</li>
+          <li><FiUsers /> Students</li>
+          <li><FiBarChart2 /> Analytics</li>
+          <li className="logout-item"><FiLogOut /> Logout</li>
         </ul>
       </div>
 
-      {/* MAIN */}
       <div className="main-content">
-        <h2>Welcome, Admin 👋</h2>
-
-        {activeMenu === "view" && (
-          <>
-            {/* FILTER BAR */}
-            <div className="filter-bar">
-              <select onChange={e => setTypeFilter(e.target.value)}>
-                <option value="">Feedback Type</option>
-                <option>Academic</option>
-                <option>Training</option>
-                <option>Skills</option>
-                <option>Events</option>
-              </select>
-
-              <select onChange={e => setDeptFilter(e.target.value)}>
-                <option value="">Department</option>
-                <option>Computer Science</option>
-                <option>Information Technology</option>
-                <option>Electronics</option>
-                <option>Mechanical</option>
-              </select>
-
-              <select onChange={e => setYearFilter(e.target.value)}>
-                <option value="">Year</option>
-                <option>1st Year</option>
-                <option>2nd Year</option>
-                <option>3rd Year</option>
-                <option>4th Year</option>
-              </select>
-
-              <div className="search-box">
+        <div className="admin-header-flex">
+            <h2>Welcome, Admin 👋</h2>
+            <div className="top-search">
                 <FiSearch />
-                <input
-                  type="text"
-                  placeholder="Search Course..."
-                  onChange={e => setSearch(e.target.value)}
-                />
+                <input type="text" placeholder="Search" />
+            </div>
+        </div>
+
+        {activeMenu === "dashboard" && (
+          <div className="admin-front-page">
+            <div className="admin-stats-grid">
+              <div className="stat-card-admin">
+                <div className="stat-icon-box bg-blue"><FiMessageSquare /></div>
+                <div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{total}</h4></div>
+              </div>
+              <div className="stat-card-admin">
+                <div className="stat-icon-box bg-green"><FiStar /></div>
+                <div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating} <span className="stars-small">⭐⭐⭐⭐</span></h4></div>
+              </div>
+              <div className="stat-card-admin">
+                <div className="stat-icon-box bg-purple"><FiCalendar /></div>
+                <div><p className="stat-label">Events Reviewed</p><h4 className="stat-value">12</h4></div>
+              </div>
+              <div className="stat-card-admin">
+                <div className="stat-icon-box bg-orange"><FiThumbsUp /></div>
+                <div><p className="stat-label">Positive Feedback</p><h4 className="stat-value">{posP}%</h4></div>
               </div>
             </div>
 
-            {/* TABLE */}
+            <div className="charts-row">
+              <div className="chart-box">
+                <div className="chart-header">Overall Feedback Percentage</div>
+                <div className="bar-container">
+                  {dist.map(d => (
+                    <div className="bar-wrapper" key={d.label}>
+                      <span className="bar-percentage">{d.percentage}%</span>
+                      <div 
+                        className="bar-fill" 
+                        style={{ 
+                          height: `${Math.max(d.height, 5)}%`, 
+                          backgroundColor: d.color
+                        }}
+                      ></div>
+                      <span className="bar-label">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="chart-box">
+                <div className="chart-header">
+                  <span>Sentiment Analysis</span>
+                </div>
+                <div className="sentiment-content">
+                  <div className="pie-wrapper">
+                    {/* FIXED: Using pie-chart-solid class and empty div */}
+                    <div 
+                      className="pie-chart-solid" 
+                      style={{ 
+                        background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="sentiment-legend-boxed">
+                    <div className="legend-box-item">
+                      <span className="dot pos"></span> Positive <b className="val-text">{posP}%</b>
+                    </div>
+                    <div className="legend-box-item">
+                      <span className="dot neu"></span> Neutral <b className="val-text">{neuP}%</b>
+                    </div>
+                    <div className="legend-box-item">
+                      <span className="dot neg"></span> Negative <b className="val-text">{negP}%</b>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeMenu === "view" && (
+          <div className="view-feedback-section">
+            <div className="filter-bar">
+              <select onChange={e => setTypeFilter(e.target.value)}>
+                <option value="">Feedback Type</option>
+                <option>Academic</option><option>Training</option><option>Skills</option><option>Events</option>
+              </select>
+              <select onChange={e => setDeptFilter(e.target.value)}>
+                <option value="">Department</option>
+                <option>Computer Science</option><option>Information Technology</option><option>Electronics</option><option>Mechanical</option>
+              </select>
+              <select onChange={e => setYearFilter(e.target.value)}>
+                <option value="">Year</option>
+                <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+              </select>
+              <div className="search-box">
+                <FiSearch /><input type="text" placeholder="Search Course..." onChange={e => setSearch(e.target.value)} />
+              </div>
+            </div>
             <div className="table-container">
               <table>
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Course / Training / Skill</th>
-                    <th>Faculty</th>
-                    <th>Rating</th>
-                    <th>Suggestions</th>
-                    <th>Delete</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Type</th><th>Course / Training / Skill</th><th>Faculty</th><th>Rating</th><th>Suggestions</th><th>Delete</th></tr></thead>
                 <tbody>
                   {filtered.map(item => (
                     <tr key={item._id}>
-                      <td>{item.feedbackType}</td>
-                      <td>{item.title}</td>
-                      <td>{item.facultyName}</td>
-                      <td>
-                        {"⭐".repeat(
-                          ["Poor","Fair","Good","Very Good","Excellent"]
-                          .indexOf(item.rating)+1
-                        )}
-                      </td>
+                      <td>{item.feedbackType}</td><td>{item.title}</td><td>{item.facultyName}</td>
+                      <td>{"⭐".repeat(ratingsMap[item.rating] || 0)}</td>
                       <td>{item.suggestions}</td>
-                      <td>
-                        <button
-                          className="delete-btn"
-                          onClick={() => deleteFeedback(item._id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
+                      <td><button className="delete-btn" onClick={() => deleteFeedback(item._id)}>Delete</button></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
