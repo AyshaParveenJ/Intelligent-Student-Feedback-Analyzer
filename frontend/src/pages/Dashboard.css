@@ -178,8 +178,8 @@
   color: white;
 }
 
-/* --- UPDATED FEEDBACK STATUS (MATCHES IMAGE 2) --- */
-.status-cards, .status-summary-row { 
+/* --- FRONT PAGE / SUMMARY VIEW STYLING --- */
+.status-summary-row { 
   display: grid !important; 
   grid-template-columns: repeat(4, 1fr) !important; 
   gap: 15px !important; 
@@ -188,47 +188,132 @@
   flex-shrink: 0; 
 }
 
-.status-card, .summary-card { 
-  padding: 12px 18px !important; 
-  border-radius: 10px !important; 
-  height: 80px !important; /* Thin format from image */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.summary-card { 
+  padding: 18px !important; 
+  border-radius: 12px !important; 
+  height: 100px !important; /* Focused height for number view */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important; 
   color: white;
   border: none !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
 }
 
-.stat-header {
+.summary-card .stat-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 400;
   opacity: 0.9;
-  margin-bottom: 4px;
+  font-family: 'Poppins', sans-serif;
 }
 
-.card-icon { font-size: 1rem !important; margin: 0 !important; }
-
-.status-card h3, .summary-card h3 { 
-  font-size: 1.8rem !important; 
-  margin: 0 !important; 
+.summary-card .stat-number {
+  font-size: 2.2rem !important; 
   font-weight: 700;
+  margin: 4px 0 0 0;
   line-height: 1;
 }
 
-/* --- SPECIFIC GRADIENTS FROM IMAGE --- */
-.stat-total, .academic { background: linear-gradient(135deg, #1e40af, #3b82f6) !important; }
-.stat-progress, .training { background: linear-gradient(135deg, #ca8a04, #f59e0b) !important; }
-.stat-reviewed, .skills { background: linear-gradient(135deg, #15803d, #22c55e) !important; }
-.stat-action, .events { background: linear-gradient(135deg, #be123c, #fb7185) !important; }
+/* --- FEEDBACK STATUS VIEW STYLING (THE BOLD CARDS) --- */
+.status-cards { 
+  display: grid !important; 
+  grid-template-columns: repeat(4, 1fr) !important; 
+  gap: 15px !important; 
+  margin: 15px 0;
+  width: 100%;
+  flex-shrink: 0; 
+}
 
-.text-success { color: #4ade80; font-size: 0.85rem; font-weight: 500; }
-.text-pending { color: #94a3b8; font-size: 0.85rem; }
+.status-card { 
+  padding: 20px !important; 
+  border-radius: 12px !important; 
+  height: 140px !important; /* Fixed height to accommodate two-line titles */
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important; /* PINS title top, status bottom */
+  color: white;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+  overflow: hidden;
+}
 
-/* --- TIMELINE TRACKER (MATCHES IMAGE 2) --- */
+.status-card h3 { 
+  font-size: 1.15rem !important; 
+  font-weight: 700 !important; 
+  line-height: 1.2 !important; 
+  margin: 0 !important; 
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  max-width: 120px; /* Forces wrap */
+}
+
+.text-success, .text-pending { 
+  margin-top: auto !important; 
+  display: block !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  line-height: 1;
+  padding-bottom: 2px;
+}
+
+.text-success { color: #4ade80 !important; } 
+.text-pending { color: #94a3b8 !important; }
+
+/* --- SPECIFIC GRADIENTS --- */
+.stat-total, .academic { background: linear-gradient(135deg, #1F2A44, #3b82f6) !important; }
+.stat-progress, .training { background: linear-gradient(135deg, #3D1A78, #7434e2) !important; }
+.stat-reviewed, .skills { background: linear-gradient(135deg, #0E4B50, #22c55e) !important; }
+.stat-action, .events { background: linear-gradient(135deg, #7B241C, #fb7185) !important; }
+
+/* --- RECENT ACTIVITY SECTION --- */
+.activity-card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Spacing between activity logs */
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.act-icon { color: #3b82f6; font-size: 1.2rem; margin-top: 2px; }
+
+.activity-text-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.act-desc { 
+  font-size: 0.88rem; 
+  margin: 0; 
+  color: #f1f5f9; 
+  font-weight: 500;
+}
+
+.act-time { 
+  font-size: 0.75rem; 
+  color: #94a3b8; 
+  margin-top: 2px;
+}
+
+/* --- TIMELINE TRACKER --- */
 .status-timeline-box {
   background: rgba(15, 23, 42, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -253,7 +338,7 @@
   position: absolute;
   height: 100%;
   left: 0;
-  width: 100%; /* Progress fill */
+  width: 100%; 
   background: linear-gradient(90deg, #3b82f6, #f59e0b, #22c55e, #fb7185);
   border-radius: 4px;
   z-index: 1;
@@ -336,25 +421,15 @@
   margin-bottom: 30px;
 }
 
-/* Activity & Privacy */
-.activity-card, .privacy-card {
+/* Activity & Privacy (General) */
+.privacy-card {
   background: #1e293b;
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
 }
 
-.activity-item {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.act-icon { color: #3b82f6; font-size: 1.2rem; }
-.act-time { font-size: 0.75rem; color: #64748b; }
-.act-desc { font-size: 0.85rem; margin-top: 2px; }
-
-/* Feedback Status / History View Fixes */
+/* Feedback Status / History View */
 .feedback-status-container {
   display: flex;
   flex-direction: column;
