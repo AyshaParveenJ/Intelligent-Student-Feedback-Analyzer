@@ -20,15 +20,28 @@ function FacultyDashboard() {
   // Recent Feedback States
   const [recentDate, setRecentDate] = useState("");
   const [recentYear, setRecentYear] = useState("");
-  const [recentSem, setRecentSem] = useState("");
+  const [recentType, setRecentType] = useState(""); 
   const [recentSearch, setRecentSearch] = useState("");
   const [recentFiltered, setRecentFiltered] = useState([]);
 
   useEffect(() => { fetchFeedback(); }, []);
   
+  // NEW: Logic for real-time filtering in View Feedback section
+  useEffect(() => {
+    if (activeMenu === "view") {
+      applyFilters();
+    }
+  }, [typeFilter, deptFilter, yearFilter, search, feedbacks, activeMenu]);
+
+  // Logic for real-time filtering in Recent Feedback section
+  useEffect(() => {
+    if (activeMenu === "recent") {
+      applyRecentFilters();
+    }
+  }, [recentSearch, recentDate, recentYear, recentType, feedbacks, activeMenu]);
+
   useEffect(() => { 
     setFiltered(feedbacks); 
-    // Default show latest 5 until filter is used
     setRecentFiltered(feedbacks.slice(0, 5)); 
   }, [feedbacks]);
 
@@ -48,7 +61,6 @@ function FacultyDashboard() {
     setFiltered(data);
   };
 
-  // UPDATED: Search by name and display all matching entries
   const applyRecentFilters = () => {
     let data = [...feedbacks];
 
@@ -61,7 +73,9 @@ function FacultyDashboard() {
       data = data.filter(f => new Date(f.createdAt).toISOString().split('T')[0] === recentDate);
     }
     if (recentYear) data = data.filter(f => f.year === recentYear);
-    if (recentSem) data = data.filter(f => (f.semester === recentSem || f.sem === recentSem));
+    if (recentType) {
+        data = data.filter(f => (f.feedbackType === recentType || f.type === recentType));
+    }
     
     setRecentFiltered(data);
   };
@@ -135,7 +149,6 @@ function FacultyDashboard() {
               <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiCalendar /></div><div><p className="stat-label">Events Reviewed</p><h4 className="stat-value">12</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiThumbsUp /></div><div><p className="stat-label">Positive Feedback</p><h4 className="stat-value">{posP}%</h4></div></div>
             </div>
-            {/* Charts Row same as original */}
             <div className="charts-row">
                 <div className="chart-box">
                     <div className="chart-header">Overall Feedback Percentage</div>
@@ -168,28 +181,28 @@ function FacultyDashboard() {
           <div className="view-feedback-section">
             <div className="filter-bar-container">
               <div className="filter-block">
-                <select className="filter-select" onChange={e => setTypeFilter(e.target.value)}>
+                <select className="filter-select" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
                   <option value="">Feedback Type</option>
                   <option>Academic</option><option>Training</option><option>Skills</option><option>Events</option>
                 </select>
               </div>
               <div className="filter-block">
-                <select className="filter-select" onChange={e => setDeptFilter(e.target.value)}>
+                <select className="filter-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
                   <option value="">Department</option>
                   <option>Computer Science</option><option>Information Technology</option><option>Electronics</option><option>Mechanical</option>
                 </select>
               </div>
               <div className="filter-block">
-                <select className="filter-select" onChange={e => setYearFilter(e.target.value)}>
+                <select className="filter-select" value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
                   <option value="">Year</option>
                   <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
                 </select>
               </div>
               <div className="filter-search-block">
                 <FiSearch color="#94a3b8" />
-                <input type="text" placeholder="Search Course..." onChange={e => setSearch(e.target.value)} />
+                <input type="text" placeholder="Search Course..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
-              <button className="filter-btn-white" onClick={applyFilters}><FiFilter size={18} /> Filter</button>
+              {/* Filter button removed for real-time updates */}
             </div>
             <div className="table-container">
               <table>
@@ -206,28 +219,32 @@ function FacultyDashboard() {
                   ))}
                 </tbody>
               </table>
+              {filtered.length === 0 && (
+                <p style={{color: 'white', textAlign: 'center', marginTop: '20px'}}>No matching records found.</p>
+              )}
             </div>
           </div>
         )}
 
         {activeMenu === "recent" && (
           <div className="view-feedback-section">
-            {/* Filter Bar with Name Search */}
             <div className="filter-bar-container">
               <div className="filter-block">
-                <input type="date" className="filter-select" style={{color: 'white'}} onChange={e => setRecentDate(e.target.value)} />
+                <input type="date" className="filter-select" style={{color: 'white'}} value={recentDate} onChange={e => setRecentDate(e.target.value)} />
               </div>
               <div className="filter-block">
-                <select className="filter-select" onChange={e => setRecentYear(e.target.value)}>
+                <select className="filter-select" value={recentYear} onChange={e => setRecentYear(e.target.value)}>
                   <option value="">Year</option>
                   <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
                 </select>
               </div>
               <div className="filter-block">
-                <select className="filter-select" onChange={e => setRecentSem(e.target.value)}>
-                  <option value="">Semester</option>
-                  <option>1st Sem</option><option>2nd Sem</option><option>3rd Sem</option><option>4th Sem</option>
-                  <option>5th Sem</option><option>6th Sem</option><option>7th Sem</option><option>8th Sem</option>
+                <select className="filter-select" value={recentType} onChange={e => setRecentType(e.target.value)}>
+                  <option value="">Feedback Type</option>
+                  <option>Academic</option>
+                  <option>Training</option>
+                  <option>Skills</option>
+                  <option>Events</option>
                 </select>
               </div>
               <div className="filter-search-block">
@@ -237,10 +254,8 @@ function FacultyDashboard() {
                   placeholder="Search Student..." 
                   value={recentSearch}
                   onChange={e => setRecentSearch(e.target.value)} 
-                  onKeyPress={(e) => e.key === 'Enter' && applyRecentFilters()}
                 />
               </div>
-              <button className="filter-btn-white" onClick={applyRecentFilters}><FiFilter size={18} /> Filter</button>
             </div>
 
             <div className="table-container">
