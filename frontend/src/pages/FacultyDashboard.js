@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   FiHome, FiClipboard, FiUsers, FiBarChart2, FiLogOut, FiSearch,
-  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare
+  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare, FiX
 } from "react-icons/fi";
 import "./FacultyDashboard.css";
 
@@ -26,6 +26,8 @@ function FacultyDashboard() {
 
   // Review Feedback States
   const [reviewSearch, setReviewSearch] = useState("");
+  const [selectedFeedback, setSelectedFeedback] = useState(null); // Added for Review Modal
+  const [response, setResponse] = useState(""); // Added for Response field
 
   useEffect(() => { fetchFeedback(); }, []);
   
@@ -65,6 +67,14 @@ function FacultyDashboard() {
     if (recentYear) data = data.filter(f => f.year === recentYear);
     if (recentType) data = data.filter(f => (f.feedbackType === recentType || f.type === recentType));
     setRecentFiltered(data);
+  };
+
+  // Function to handle the response submission
+  const handleReviewSubmit = async () => {
+    console.log(`Responding to ${selectedFeedback._id}: ${response}`);
+    alert("Response sent successfully!");
+    setSelectedFeedback(null);
+    setResponse("");
   };
 
   const ratingsMap = { "Poor": 1, "Fair": 2, "Good": 3, "Very Good": 4, "Excellent": 5 };
@@ -262,7 +272,6 @@ function FacultyDashboard() {
           </div>
         )}
 
-        {/* NEW SECTION: Review Feedback */}
         {activeMenu === "review" && (
           <div className="view-feedback-section">
             <div className="filter-bar-container">
@@ -281,8 +290,10 @@ function FacultyDashboard() {
               <table>
                 <thead>
                   <tr>
+                    <th>Feedback Type</th>
                     <th>Feedback Title</th>
                     <th>Student</th>
+                    <th>Date & Time</th>
                     <th>Current Rating</th>
                     <th>Review Status</th>
                     <th>Action</th>
@@ -291,11 +302,22 @@ function FacultyDashboard() {
                 <tbody>
                   {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
                     <tr key={item._id}>
+                      <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
                       <td className="td-course">{item.title}</td>
                       <td className="td-student">{item.studentName || "Anonymous"}</td>
+                      <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
                       <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
                       <td><span className="td-type">Pending Review</span></td>
-                      <td><button className="filter-btn-white" style={{height: '30px', padding: '0 10px', fontSize: '12px'}}>Review</button></td>
+                      {/* Updated the button to set the selected feedback */}
+                      <td>
+                        <button 
+                          className="filter-btn-white" 
+                          style={{height: '30px', padding: '0 10px', fontSize: '12px'}}
+                          onClick={() => setSelectedFeedback(item)}
+                        >
+                          Review
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -306,6 +328,45 @@ function FacultyDashboard() {
             </div>
           </div>
         )}
+
+      {/* REVIEW MODAL */}
+{selectedFeedback && (
+  <div className="modal-overlay">
+    <div className="modal-content review-modal">
+      <div className="modal-header">
+        <h3>Review: {selectedFeedback.title}</h3>
+        <FiX className="close-icon" onClick={() => setSelectedFeedback(null)} />
+      </div>
+      <div className="modal-body">
+        <div className="review-meta">
+          <p><strong>Student:</strong> {selectedFeedback.studentName}</p>
+          <p><strong>Type:</strong> {selectedFeedback.feedbackType || selectedFeedback.type}</p>
+        </div>
+        
+        <div className="modal-section">
+          <label>Student Suggestion:</label>
+          <div className="suggestion-box">
+            {selectedFeedback.suggestions || "No suggestion provided."}
+          </div>
+        </div>
+
+        <div className="modal-section">
+          <label>Your Response:</label>
+          <textarea 
+            placeholder="Type your response here..." 
+            value={response} 
+            onChange={(e) => setResponse(e.target.value)}
+            className="response-textarea"
+          />
+        </div>
+      </div>
+      <div className="modal-footer">
+        <button className="btn-cancel" onClick={() => setSelectedFeedback(null)}>Cancel</button>
+        <button className="btn-send" onClick={handleReviewSubmit}>Send Response</button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
