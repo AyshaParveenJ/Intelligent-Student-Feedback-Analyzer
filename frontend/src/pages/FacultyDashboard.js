@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   FiHome, FiClipboard, FiUsers, FiBarChart2, FiLogOut, FiSearch,
-  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare, FiX
+  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare, FiX, FiCheck,FiCheckCircle
 } from "react-icons/fi";
 import "./FacultyDashboard.css";
 
@@ -26,8 +26,9 @@ function FacultyDashboard() {
 
   // Review Feedback States
   const [reviewSearch, setReviewSearch] = useState("");
-  const [selectedFeedback, setSelectedFeedback] = useState(null); // Added for Review Modal
-  const [response, setResponse] = useState(""); // Added for Response field
+  const [selectedFeedback, setSelectedFeedback] = useState(null); 
+  const [response, setResponse] = useState(""); 
+  const [reviewedIds, setReviewedIds] = useState(new Set()); 
 
   useEffect(() => { fetchFeedback(); }, []);
   
@@ -69,9 +70,9 @@ function FacultyDashboard() {
     setRecentFiltered(data);
   };
 
-  // Function to handle the response submission
   const handleReviewSubmit = async () => {
     console.log(`Responding to ${selectedFeedback._id}: ${response}`);
+    setReviewedIds(prev => new Set(prev).add(selectedFeedback._id));
     alert("Response sent successfully!");
     setSelectedFeedback(null);
     setResponse("");
@@ -284,7 +285,6 @@ function FacultyDashboard() {
                   onChange={e => setReviewSearch(e.target.value)} 
                 />
               </div>
-              <button className="filter-btn-white">Apply Review</button>
             </div>
             <div className="table-container">
               <table>
@@ -300,26 +300,34 @@ function FacultyDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
-                    <tr key={item._id}>
-                      <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
-                      <td className="td-course">{item.title}</td>
-                      <td className="td-student">{item.studentName || "Anonymous"}</td>
-                      <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
-                      <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
-                      <td><span className="td-type">Pending Review</span></td>
-                      {/* Updated the button to set the selected feedback */}
-                      <td>
-                        <button 
-                          className="filter-btn-white" 
-                          style={{height: '30px', padding: '0 10px', fontSize: '12px'}}
-                          onClick={() => setSelectedFeedback(item)}
-                        >
-                          Review
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                 {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
+  <tr key={item._id}>
+    <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
+    <td className="td-course">{item.title}</td>
+    <td className="td-student">{item.studentName || "Anonymous"}</td>
+    <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
+    <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
+    <td>
+  <span className={`status-pill ${reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
+    {reviewedIds.has(item._id) ? (
+      <>Reviewed <FiCheckCircle size={14} style={{ marginLeft: '6px' }} /></>
+    ) : (
+      "Pending Review"
+    )}
+  </span>
+</td>
+    <td>
+      <button 
+        className="filter-btn-white" 
+        style={{height: '30px', padding: '0 10px', fontSize: '12px', opacity: reviewedIds.has(item._id) ? 0.5 : 1}}
+        onClick={() => !reviewedIds.has(item._id) && setSelectedFeedback(item)}
+        disabled={reviewedIds.has(item._id)}
+      >
+        {reviewedIds.has(item._id) ? "Done" : "Review"}
+      </button>
+    </td>
+  </tr>
+))}
                 </tbody>
               </table>
               <div className="table-footer">
@@ -329,44 +337,44 @@ function FacultyDashboard() {
           </div>
         )}
 
-      {/* REVIEW MODAL */}
-{selectedFeedback && (
-  <div className="modal-overlay">
-    <div className="modal-content review-modal">
-      <div className="modal-header">
-        <h3>Review: {selectedFeedback.title}</h3>
-        <FiX className="close-icon" onClick={() => setSelectedFeedback(null)} />
-      </div>
-      <div className="modal-body">
-        <div className="review-meta">
-          <p><strong>Student:</strong> {selectedFeedback.studentName}</p>
-          <p><strong>Type:</strong> {selectedFeedback.feedbackType || selectedFeedback.type}</p>
-        </div>
-        
-        <div className="modal-section">
-          <label>Student Suggestion:</label>
-          <div className="suggestion-box">
-            {selectedFeedback.suggestions || "No suggestion provided."}
+      {selectedFeedback && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2>Review Feedback: {selectedFeedback.title}</h2>
+              <button className="close-btn" onClick={() => setSelectedFeedback(null)}><FiX /></button>
+            </div>
+
+            <div className="modal-body">
+              <div className="feedback-meta">
+                <div><label>Student</label><p>{selectedFeedback.studentName}</p></div>
+                <div><label>Feedback Type</label><p>{selectedFeedback.feedbackType || selectedFeedback.type}</p></div>
+              </div>
+
+              <div className="field-group">
+                <label>Student Suggestion</label>
+                <div className="suggestion-display">
+                  {selectedFeedback.suggestions || "No suggestion provided."}
+                </div>
+              </div>
+
+              <div className="field-group">
+                <label>Your Response</label>
+                <textarea 
+                  placeholder="Type your constructive feedback here..." 
+                  value={response} 
+                  onChange={(e) => setResponse(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setSelectedFeedback(null)}>Cancel</button>
+              <button className="btn-primary" onClick={handleReviewSubmit}>Send Response</button>
+            </div>
           </div>
         </div>
-
-        <div className="modal-section">
-          <label>Your Response:</label>
-          <textarea 
-            placeholder="Type your response here..." 
-            value={response} 
-            onChange={(e) => setResponse(e.target.value)}
-            className="response-textarea"
-          />
-        </div>
-      </div>
-      <div className="modal-footer">
-        <button className="btn-cancel" onClick={() => setSelectedFeedback(null)}>Cancel</button>
-        <button className="btn-send" onClick={handleReviewSubmit}>Send Response</button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
       </div>
     </div>
   );
