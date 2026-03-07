@@ -346,10 +346,12 @@
   box-sizing: border-box;
 }
 
-.rating-very-good { color: #4ade80 !important; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
-.rating-good { color: #60a5fa !important; font-weight: 700;  padding: 4px 10px; border-radius: 6px; }
-.rating-fair { color: #fbbf24 !important; font-weight: 700;  padding: 4px 10px; border-radius: 6px; }
-.rating-poor { color: #f87171 !important; font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+/* 5-Level Rating Colors - UPDATED FOR DISTINCT COLORS */
+.rating-excellent { color: #34d399 !important; font-weight: 700; } /* Soft Emerald */
+.rating-very-good { color: #3b82f6 !important; font-weight: 700; } /* Bright Blue */
+.rating-good      { color: #eab308 !important; font-weight: 700; } /* Yellow */
+.rating-fair      { color: #f97316 !important; font-weight: 700; } /* Orange */
+.rating-poor      { color: #ef4444 !important; font-weight: 700; } /* Red */
 
 .filter-search-block {
   display: flex;
@@ -384,12 +386,11 @@
 .td-course { color: #f8fafc; font-weight: 500; }
 
 /* Overlay for the modal */
-/* Ensure the overlay covers everything and centers the modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(4px); /* Modern blur effect */
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -464,8 +465,8 @@ textarea {
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
-  display: inline-flex; /* Changed to flex to align icon and text */
-  align-items: center;  /* Ensures vertical alignment */
+  display: inline-flex;
+  align-items: center;
   border: 2px solid;
   text-align: center;
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   FiHome, FiClipboard, FiUsers, FiBarChart2, FiLogOut, FiSearch,
-  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare, FiX, FiCheck,FiCheckCircle
+  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare, FiX, FiCheck, FiCheckCircle
 } from "react-icons/fi";
 import "./FacultyDashboard.css";
 
@@ -28,7 +28,16 @@ function FacultyDashboard() {
   const [reviewSearch, setReviewSearch] = useState("");
   const [selectedFeedback, setSelectedFeedback] = useState(null); 
   const [response, setResponse] = useState(""); 
-  const [reviewedIds, setReviewedIds] = useState(new Set()); 
+  
+  // Persistence logic for reviewedIds
+  const [reviewedIds, setReviewedIds] = useState(() => {
+    const saved = localStorage.getItem("reviewedFeedbackIds");
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  useEffect(() => {
+    localStorage.setItem("reviewedFeedbackIds", JSON.stringify([...reviewedIds]));
+  }, [reviewedIds]);
 
   useEffect(() => { fetchFeedback(); }, []);
   
@@ -106,14 +115,16 @@ function FacultyDashboard() {
   const negP = getPercent(negative);
 
   const getRatingClass = (rating) => {
-    if (!rating) return "";
-    const r = rating.toLowerCase();
-    if (r.includes("very good") || r.includes("excellent")) return "rating-very-good";
-    if (r.includes("good")) return "rating-good";
-    if (r.includes("fair")) return "rating-fair";
-    if (r.includes("poor")) return "rating-poor";
-    return "";
-  };
+  if (!rating) return "";
+  const r = rating.toLowerCase().trim();
+  
+  if (r === "excellent") return "rating-excellent";
+  if (r === "very good") return "rating-very-good";
+  if (r === "good") return "rating-good";
+  if (r === "fair") return "rating-fair";
+  if (r === "poor") return "rating-poor";
+  return "";
+};
 
   return (
     <div className="dashboard-container">
@@ -235,10 +246,7 @@ function FacultyDashboard() {
               <div className="filter-block">
                 <select className="filter-select" value={recentType} onChange={e => setRecentType(e.target.value)}>
                   <option value="">Feedback Type</option>
-                  <option>Academic</option>
-                  <option>Training</option>
-                  <option>Skills</option>
-                  <option>Events</option>
+                  <option>Academic</option><option>Training</option><option>Skills</option><option>Events</option>
                 </select>
               </div>
               <div className="filter-search-block">
@@ -300,34 +308,34 @@ function FacultyDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                 {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
-  <tr key={item._id}>
-    <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
-    <td className="td-course">{item.title}</td>
-    <td className="td-student">{item.studentName || "Anonymous"}</td>
-    <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
-    <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
-    <td>
-  <span className={`status-pill ${reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
-    {reviewedIds.has(item._id) ? (
-      <>Reviewed <FiCheckCircle size={14} style={{ marginLeft: '6px' }} /></>
-    ) : (
-      "Pending Review"
-    )}
-  </span>
-</td>
-    <td>
-      <button 
-        className="filter-btn-white" 
-        style={{height: '30px', padding: '0 10px', fontSize: '12px', opacity: reviewedIds.has(item._id) ? 0.5 : 1}}
-        onClick={() => !reviewedIds.has(item._id) && setSelectedFeedback(item)}
-        disabled={reviewedIds.has(item._id)}
-      >
-        {reviewedIds.has(item._id) ? "Done" : "Review"}
-      </button>
-    </td>
-  </tr>
-))}
+                   {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
+                    <tr key={item._id}>
+                      <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
+                      <td className="td-course">{item.title}</td>
+                      <td className="td-student">{item.studentName || "Anonymous"}</td>
+                      <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
+                      <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
+                      <td>
+                        <span className={`status-pill ${reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
+                          {reviewedIds.has(item._id) ? (
+                             <>Reviewed <FiCheckCircle size={14} style={{ marginLeft: '6px' }} /></>
+                          ) : (
+                             "Pending Review"
+                          )}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          className="filter-btn-white" 
+                          style={{height: '30px', padding: '0 10px', fontSize: '12px', opacity: reviewedIds.has(item._id) ? 0.5 : 1}}
+                          onClick={() => !reviewedIds.has(item._id) && setSelectedFeedback(item)}
+                          disabled={reviewedIds.has(item._id)}
+                        >
+                          {reviewedIds.has(item._id) ? "Done" : "Review"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
               <div className="table-footer">
