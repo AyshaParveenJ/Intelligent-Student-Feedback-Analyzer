@@ -10,13 +10,14 @@
 .sidebar {
   width: 240px;
   background: linear-gradient(180deg, #111933, #0c142a);
-  padding: 25px;
+  padding: 5px 0px 20px 10px;
 }
 
 .sidebar h3 {
   color: #3b82f6;
   font-size: 1.1rem;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
+  padding-left: 15px;
 }
 
 .sidebar ul {
@@ -24,44 +25,49 @@
   padding: 0;
 }
 
-/* Ensure the parent list item has relative positioning for the absolute indicator */
+/* Sidebar List Items with Glow Indicator Logic */
 .sidebar ul li {
-  padding: 12px 25px; /* Added horizontal padding to make room for the indicator */
+  padding: 12px 25px;
   cursor: pointer;
   color: #cbd5e1;
   display: flex;
   gap: 12px;
   align-items: center;
   transition: 0.3s;
-  position: relative; /* Required for the glow line to position correctly */
+  position: relative; 
 }
 
 /* The active state with the glow-fade indicator */
 .active-link {
   color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.05); /* Very subtle background tint */
+  background: rgba(59, 130, 246, 0.08);
 }
 
 .active-link::after {
   content: '';
   position: absolute;
   right: 0;
-  top: 15%;
-  bottom: 15%;
-  width: 3px;
-  /* The glow-fade effect: Solid blue in center, transparent at top/bottom */
+  top: 0%;
+  bottom: 0%;
+  width: 2px;
   background: linear-gradient(
     180deg, 
-     rgba(59, 130, 246, 1) 50%,  
+    rgba(59, 130, 246, 0) 0%, 
     rgba(59, 130, 246, 1) 50%, 
-     rgba(59, 130, 246, 1) 50%
+    rgba(59, 130, 246, 0) 100%
   );
-  border-radius:px;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); /* Adds the 'glow' effect */
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
 }
 
 .sidebar ul li:hover, .active-link {
   color: #3b82f6;
+}
+
+/* Specific styling for Logout */
+.sidebar ul li:last-child {
+  color: #f87171;
+  margin-top: 20px;
 }
 
 .main-content {
@@ -184,7 +190,7 @@
   font-weight: 500;
 }
 
-/* --- UPDATED SENTIMENT ANALYSIS (SOLID PIE) --- */
+/* --- SENTIMENT ANALYSIS --- */
 .sentiment-content {
   display: flex;
   align-items: center;
@@ -199,17 +205,14 @@
   align-items: center;
 }
 
-/* Updated for a solid circle with no hole */
 .pie-chart-solid {
   width: 160px;
   height: 160px;
   border-radius: 50%;
   position: relative;
-  /* Spins once on load */
   animation: rotateOnce 1.2s ease-out forwards;
 }
 
-/* Boxed Legend Styling */
 .sentiment-legend-boxed {
   display: flex;
   flex-direction: column;
@@ -250,184 +253,132 @@
   to { transform: rotate(0deg); opacity: 1; }
 }
 
-/* --- TABLE STYLES --- */
-/* The Dark Themed Box */
+/* --- TABLE STYLES (MODIFIED FOR FULL WIDTH) --- */
 .view-feedback-section {
-  background: #111933; /* Deep navy background matching your sidebar/charts */
-  padding: 25px;
+  padding: 30px;
+  background: #111933; 
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  margin-top: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-/* Ensure the table sits flush within this box */
-.table-container {
-  overflow-x: auto;
-}
-
-.filter-bar {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-}
-
-.filter-bar select, .search-box input {
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: none;
-  background: #1e293b;
-  color: white;
-}
-
-.table-container table {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   width: 100%;
-  border-collapse: collapse;
+  box-sizing: border-box;
 }
 
-th, td {
-  padding: 15px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.delete-btn {
-  background: #ef4444;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-}
-
-/* Container with the original deep blue/dark theme */
-/* Container Background */
-.view-feedback-section {
-  padding: 20px;
-  background: #0b1120; 
-  border-radius: 12px;
-}
-
-/* THE SHADED BOX: Reserved strictly for the filter controls */
-/* Container for all filter elements - now transparent to let individual blocks show */
 .filter-bar-container {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-}
-
-/* INDIVIDUAL BLOCKS for Type, Dept, and Year */
-.filter-block {
-  background: #1e293b; /* The shaded block color */
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  display: flex;
-  align-items: center;
-}
-
-/* Styled Selects inside the blocks */
-.filter-select {
-  background: #1e293b; /* Matches the block background */
-  color: #f1f5f9;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  cursor: pointer;
-  min-width: 140px;
-  /* Forces the browser to style the dropdown menu background */
-  appearance: none; 
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-.filter-select option {
-  background-color: #1e293b; /* Deep blue background for the list */
-  color: #f1f5f9;            /* Light text for the list */
-  padding: 10px;
-}
-
-/* Optional: Adds a custom arrow to replace the one hidden by 'appearance: none' */
-.filter-block::after {
-  content: '▼';
-  font-size: 10px;
-  color: #94a3b8;
-  margin-left: -15px;
-  pointer-events: none;
-}
-/* Search Box remains in its own block style */
-.filter-search-block {
-  display: flex;
-  align-items: center;
-  background: #1e293b;
-  padding: 8px 15px;
-  border-radius: 10px;
-  border: 1px solid #334155;
-  flex: 1;
-  min-width: 200px;
-}
-
-.filter-search-block input {
-  background: transparent;
-  border: none;
-  color: white;
-  padding: 5px 10px;
+  gap: 12px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: rgba(30, 41, 59, 0.5); 
+  border-radius: 12px;
   width: 100%;
-  outline: none;
+  box-sizing: border-box;
 }
 
-/* White Filter Button */
-.filter-btn-white {
-  background: #ffffff;
-  color: #0f172a;
-  padding: 10px 24px;
+.filter-block {
+  background: #1e293b;
+  padding: 8px 12px;
   border-radius: 8px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 44px; /* Matches the block heights */
 }
 
-/* THE DATA AREA: No blocks, just clean alignment */
+.filter-select {
+  background: transparent;
+  color: #cbd5e1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  min-width: 130px;
+  cursor: pointer;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .table-container table {
   width: 100%;
   border-collapse: collapse;
+}
+
+.table-container thead {
+  background: rgba(59, 130, 246, 0.1); 
 }
 
 .table-container th {
   color: #94a3b8;
   font-weight: 600;
   font-size: 13px;
-  padding: 15px 20px;
+  padding: 18px 20px;
   text-align: left;
-  border-bottom: 1px solid #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.table-container tr {
-  background: transparent; /* No block backgrounds for data rows */
+.table-container tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02); 
+}
+
+.table-container tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05); 
 }
 
 .table-container td {
   padding: 18px 20px;
   color: #cbd5e1;
   font-size: 14px;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.5); /* Subtle line separator */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Typography styles */
+.table-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #64748b;
+  font-size: 13px;
+  padding: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.rating-very-good { color: #4ade80 !important; font-weight: 700; background: rgba(74, 222, 128, 0.1); padding: 4px 10px; border-radius: 6px; }
+.rating-good { color: #60a5fa !important; font-weight: 700; background: rgba(96, 165, 250, 0.1); padding: 4px 10px; border-radius: 6px; }
+.rating-fair { color: #fbbf24 !important; font-weight: 700; background: rgba(251, 191, 36, 0.1); padding: 4px 10px; border-radius: 6px; }
+.rating-poor { color: #f87171 !important; font-weight: 700; background: rgba(248, 113, 113, 0.1); padding: 4px 10px; border-radius: 6px; }
+
+.filter-search-block {
+  display: flex;
+  align-items: center;
+  background: #1e293b;
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex: 1;
+}
+
+.filter-search-block input {
+  background: transparent;
+  border: none;
+  color: white;
+  width: 100%;
+  outline: none;
+}
+
+.filter-btn-white {
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 25px;
+  border-radius: 8px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  height: 40px;
+}
+
 .td-type { color: #f8fafc; font-weight: 500; }
 .td-course { color: #f8fafc; font-weight: 500; }
-.td-faculty { color: #94a3b8; }
-.td-rating { color: #f1f5f9; }
-.td-suggestions { color: #94a3b8; font-style: italic; }
-
-/* Dynamic Rating Colors */
-.rating-very-good { color: #4ade80 !important; font-weight: 700; } /* Vibrant Green */
-.rating-good { color: #60a5fa !important; font-weight: 700; }      /* Bright Blue */
-.rating-fair { color: #fbbf24 !important; font-weight: 700; }      /* Amber/Yellow */
-.rating-poor { color: #f87171 !important; font-weight: 700; }      /* Soft Red */
-.rating-default { color: #cbd5e1; }                               /* Default Grey */

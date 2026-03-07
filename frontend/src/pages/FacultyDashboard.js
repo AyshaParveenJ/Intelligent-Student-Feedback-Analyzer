@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   FiHome, FiClipboard, FiUsers, FiBarChart2, FiLogOut, FiSearch,
-  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock
+  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare
 } from "react-icons/fi";
 import "./FacultyDashboard.css";
 
@@ -23,6 +23,9 @@ function FacultyDashboard() {
   const [recentType, setRecentType] = useState(""); 
   const [recentSearch, setRecentSearch] = useState("");
   const [recentFiltered, setRecentFiltered] = useState([]);
+
+  // Review Feedback States
+  const [reviewSearch, setReviewSearch] = useState("");
 
   useEffect(() => { fetchFeedback(); }, []);
   
@@ -109,6 +112,7 @@ function FacultyDashboard() {
           <li className={activeMenu === "dashboard" ? "active-link" : ""} onClick={() => setActiveMenu("dashboard")}><FiHome /> Dashboard</li>
           <li className={activeMenu === "view" ? "active-link" : ""} onClick={() => setActiveMenu("view")}><FiClipboard /> View Feedback</li>
           <li className={activeMenu === "recent" ? "active-link" : ""} onClick={() => setActiveMenu("recent")}><FiClock /> Recent Feedback</li>
+          <li className={activeMenu === "review" ? "active-link" : ""} onClick={() => setActiveMenu("review")}><FiCheckSquare /> Review Feedback</li>
           <li><FiUsers /> Students</li>
           <li><FiBarChart2 /> Analytics</li>
           <li className="logout-item"><FiLogOut /> Logout</li>
@@ -125,7 +129,6 @@ function FacultyDashboard() {
 
         {activeMenu === "dashboard" && (
           <div className="admin-front-page">
-            {/* Dashboard Stats */}
             <div className="admin-stats-grid">
               <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{total}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating} <span className="stars-small">⭐⭐⭐⭐</span></h4></div></div>
@@ -255,6 +258,51 @@ function FacultyDashboard() {
                 </tbody>
               </table>
               {recentFiltered.length === 0 && <p style={{color: 'white', textAlign: 'center', marginTop: '20px'}}>No matching feedback found.</p>}
+            </div>
+          </div>
+        )}
+
+        {/* NEW SECTION: Review Feedback */}
+        {activeMenu === "review" && (
+          <div className="view-feedback-section">
+            <div className="filter-bar-container">
+              <div className="filter-search-block">
+                <FiSearch color="#94a3b8" />
+                <input 
+                  type="text" 
+                  placeholder="Review specific feedback..." 
+                  value={reviewSearch} 
+                  onChange={e => setReviewSearch(e.target.value)} 
+                />
+              </div>
+              <button className="filter-btn-white">Apply Review</button>
+            </div>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Feedback Title</th>
+                    <th>Student</th>
+                    <th>Current Rating</th>
+                    <th>Review Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
+                    <tr key={item._id}>
+                      <td className="td-course">{item.title}</td>
+                      <td className="td-student">{item.studentName || "Anonymous"}</td>
+                      <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
+                      <td><span className="td-type">Pending Review</span></td>
+                      <td><button className="filter-btn-white" style={{height: '30px', padding: '0 10px', fontSize: '12px'}}>Review</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="table-footer">
+                Showing 1 to {feedbacks.length} entries
+              </div>
             </div>
           </div>
         )}
