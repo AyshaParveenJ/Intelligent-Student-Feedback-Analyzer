@@ -24,14 +24,40 @@
   padding: 0;
 }
 
+/* Ensure the parent list item has relative positioning for the absolute indicator */
 .sidebar ul li {
-  padding: 12px 0;
+  padding: 12px 25px; /* Added horizontal padding to make room for the indicator */
   cursor: pointer;
   color: #cbd5e1;
   display: flex;
   gap: 12px;
   align-items: center;
   transition: 0.3s;
+  position: relative; /* Required for the glow line to position correctly */
+}
+
+/* The active state with the glow-fade indicator */
+.active-link {
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.05); /* Very subtle background tint */
+}
+
+.active-link::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 3px;
+  /* The glow-fade effect: Solid blue in center, transparent at top/bottom */
+  background: linear-gradient(
+    180deg, 
+     rgba(59, 130, 246, 1) 50%,  
+    rgba(59, 130, 246, 1) 50%, 
+     rgba(59, 130, 246, 1) 50%
+  );
+  border-radius:px;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); /* Adds the 'glow' effect */
 }
 
 .sidebar ul li:hover, .active-link {
@@ -225,10 +251,19 @@
 }
 
 /* --- TABLE STYLES --- */
+/* The Dark Themed Box */
 .view-feedback-section {
-  background: #111933;
+  background: #111933; /* Deep navy background matching your sidebar/charts */
   padding: 25px;
   border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Ensure the table sits flush within this box */
+.table-container {
+  overflow-x: auto;
 }
 
 .filter-bar {

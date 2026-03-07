@@ -26,18 +26,12 @@ function FacultyDashboard() {
 
   useEffect(() => { fetchFeedback(); }, []);
   
-  // NEW: Logic for real-time filtering in View Feedback section
   useEffect(() => {
-    if (activeMenu === "view") {
-      applyFilters();
-    }
+    if (activeMenu === "view") applyFilters();
   }, [typeFilter, deptFilter, yearFilter, search, feedbacks, activeMenu]);
 
-  // Logic for real-time filtering in Recent Feedback section
   useEffect(() => {
-    if (activeMenu === "recent") {
-      applyRecentFilters();
-    }
+    if (activeMenu === "recent") applyRecentFilters();
   }, [recentSearch, recentDate, recentYear, recentType, feedbacks, activeMenu]);
 
   useEffect(() => { 
@@ -63,28 +57,16 @@ function FacultyDashboard() {
 
   const applyRecentFilters = () => {
     let data = [...feedbacks];
-
-    if (recentSearch) {
-      data = data.filter(f => 
-        (f.studentName || "").toLowerCase().includes(recentSearch.toLowerCase())
-      );
-    }
-    if (recentDate) {
-      data = data.filter(f => new Date(f.createdAt).toISOString().split('T')[0] === recentDate);
-    }
+    if (recentSearch) data = data.filter(f => (f.studentName || "").toLowerCase().includes(recentSearch.toLowerCase()));
+    if (recentDate) data = data.filter(f => new Date(f.createdAt).toISOString().split('T')[0] === recentDate);
     if (recentYear) data = data.filter(f => f.year === recentYear);
-    if (recentType) {
-        data = data.filter(f => (f.feedbackType === recentType || f.type === recentType));
-    }
-    
+    if (recentType) data = data.filter(f => (f.feedbackType === recentType || f.type === recentType));
     setRecentFiltered(data);
   };
 
   const ratingsMap = { "Poor": 1, "Fair": 2, "Good": 3, "Very Good": 4, "Excellent": 5 };
   const total = feedbacks.length;
-  const avgRating = total > 0 
-    ? (feedbacks.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / total).toFixed(1)
-    : "0.0";
+  const avgRating = total > 0 ? (feedbacks.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / total).toFixed(1) : "0.0";
 
   const feedbackCategories = [
     { label: "Poor", color: "#ef4444" },
@@ -143,6 +125,7 @@ function FacultyDashboard() {
 
         {activeMenu === "dashboard" && (
           <div className="admin-front-page">
+            {/* Dashboard Stats */}
             <div className="admin-stats-grid">
               <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{total}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating} <span className="stars-small">⭐⭐⭐⭐</span></h4></div></div>
@@ -202,11 +185,10 @@ function FacultyDashboard() {
                 <FiSearch color="#94a3b8" />
                 <input type="text" placeholder="Search Course..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
-              {/* Filter button removed for real-time updates */}
             </div>
             <div className="table-container">
               <table>
-                <thead><tr><th>Type</th><th>Course / Training / Skill</th><th>Faculty</th><th>Rating</th><th>Suggestions</th></tr></thead>
+                <thead><tr><th>Type</th><th>Course / Training / Skill</th><th>Faculty</th><th>Rating</th><th>Suggestion</th><th>Date</th></tr></thead>
                 <tbody>
                   {filtered.map(item => (
                     <tr key={item._id}>
@@ -215,13 +197,11 @@ function FacultyDashboard() {
                       <td className="td-faculty">{item.facultyName || item.faculty || "N/A"}</td>
                       <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
                       <td className="td-suggestions">{item.suggestions}</td>
+                      <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {filtered.length === 0 && (
-                <p style={{color: 'white', textAlign: 'center', marginTop: '20px'}}>No matching records found.</p>
-              )}
             </div>
           </div>
         )}
@@ -249,12 +229,7 @@ function FacultyDashboard() {
               </div>
               <div className="filter-search-block">
                 <FiSearch color="#94a3b8" />
-                <input 
-                  type="text" 
-                  placeholder="Search Student..." 
-                  value={recentSearch}
-                  onChange={e => setRecentSearch(e.target.value)} 
-                />
+                <input type="text" placeholder="Search Student..." value={recentSearch} onChange={e => setRecentSearch(e.target.value)} />
               </div>
             </div>
 
@@ -265,7 +240,6 @@ function FacultyDashboard() {
                     <th>Student Name</th>
                     <th>Date & Time</th>
                     <th>Year</th>
-                    <th>Semester</th>
                     <th>Feedback Type</th>
                   </tr>
                 </thead>
@@ -275,15 +249,12 @@ function FacultyDashboard() {
                       <td className="td-student">{item.studentName || "Anonymous"}</td>
                       <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
                       <td className="td-year">{item.year || "N/A"}</td>
-                      <td className="td-sem">{item.semester || item.sem || "N/A"}</td>
                       <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {recentFiltered.length === 0 && (
-                <p style={{color: 'white', textAlign: 'center', marginTop: '20px'}}>No matching feedback found.</p>
-              )}
+              {recentFiltered.length === 0 && <p style={{color: 'white', textAlign: 'center', marginTop: '20px'}}>No matching feedback found.</p>}
             </div>
           </div>
         )}
