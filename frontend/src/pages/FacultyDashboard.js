@@ -11,6 +11,9 @@ function FacultyDashboard() {
   const [filtered, setFiltered] = useState([]);
   const [activeMenu, setActiveMenu] = useState("dashboard");
   
+  // Analytics Filter State
+  const [analyticsType, setAnalyticsType] = useState("All");
+
   // View Feedback States
   const [typeFilter, setTypeFilter] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
@@ -87,9 +90,14 @@ function FacultyDashboard() {
     setResponse("");
   };
 
+  // Dynamic Analytics Calculation
+  const displayData = activeMenu === "analytics" 
+    ? (analyticsType === "All" ? feedbacks : feedbacks.filter(f => (f.feedbackType || f.type) === analyticsType))
+    : feedbacks;
+
   const ratingsMap = { "Poor": 1, "Fair": 2, "Good": 3, "Very Good": 4, "Excellent": 5 };
-  const total = feedbacks.length;
-  const avgRating = total > 0 ? (feedbacks.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / total).toFixed(1) : "0.0";
+  const total = displayData.length;
+  const avgRating = total > 0 ? (displayData.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / total).toFixed(1) : "0.0";
 
   const feedbackCategories = [
     { label: "Poor", color: "#ef4444" },
@@ -100,14 +108,14 @@ function FacultyDashboard() {
   ];
 
   const dist = feedbackCategories.map(cat => {
-    const count = feedbacks.filter(f => f.rating === cat.label).length;
+    const count = displayData.filter(f => f.rating === cat.label).length;
     const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : "0.0";
     return { ...cat, percentage, height: total > 0 ? (count / total) * 100 : 0 };
   });
 
-  const positive = feedbacks.filter(f => ["Very Good", "Excellent"].includes(f.rating)).length;
-  const neutral = feedbacks.filter(f => f.rating === "Good").length;
-  const negative = feedbacks.filter(f => ["Poor", "Fair"].includes(f.rating)).length;
+  const positive = displayData.filter(f => ["Very Good", "Excellent"].includes(f.rating)).length;
+  const neutral = displayData.filter(f => f.rating === "Good").length;
+  const negative = displayData.filter(f => ["Poor", "Fair"].includes(f.rating)).length;
 
   const getPercent = (count) => (total > 0 ? Math.round((count / total) * 100) : 0);
   const posP = getPercent(positive);
@@ -115,16 +123,15 @@ function FacultyDashboard() {
   const negP = getPercent(negative);
 
   const getRatingClass = (rating) => {
-  if (!rating) return "";
-  const r = rating.toLowerCase().trim();
-  
-  if (r === "excellent") return "rating-excellent";
-  if (r === "very good") return "rating-very-good";
-  if (r === "good") return "rating-good";
-  if (r === "fair") return "rating-fair";
-  if (r === "poor") return "rating-poor";
-  return "";
-};
+    if (!rating) return "";
+    const r = rating.toLowerCase().trim();
+    if (r === "excellent") return "rating-excellent";
+    if (r === "very good") return "rating-very-good";
+    if (r === "good") return "rating-good";
+    if (r === "fair") return "rating-fair";
+    if (r === "poor") return "rating-poor";
+    return "";
+  };
 
   return (
     <div className="dashboard-container">
@@ -135,8 +142,7 @@ function FacultyDashboard() {
           <li className={activeMenu === "view" ? "active-link" : ""} onClick={() => setActiveMenu("view")}><FiClipboard /> View Feedback</li>
           <li className={activeMenu === "recent" ? "active-link" : ""} onClick={() => setActiveMenu("recent")}><FiClock /> Recent Feedback</li>
           <li className={activeMenu === "review" ? "active-link" : ""} onClick={() => setActiveMenu("review")}><FiCheckSquare /> Review Feedback</li>
-          <li><FiUsers /> Students</li>
-          <li><FiBarChart2 /> Analytics</li>
+          <li className={activeMenu === "analytics" ? "active-link" : ""} onClick={() => setActiveMenu("analytics")}><FiBarChart2 /> Analytics</li>
           <li className="logout-item"><FiLogOut /> Logout</li>
         </ul>
       </div>
@@ -149,14 +155,25 @@ function FacultyDashboard() {
           </div>
         )}
 
-        {activeMenu === "dashboard" && (
+        {(activeMenu === "dashboard" || activeMenu === "analytics") && (
           <div className="admin-front-page">
+            {activeMenu === "analytics" && (
+                <div className="filter-bar-container" style={{marginBottom: '20px'}}>
+                    <select className="filter-select" value={analyticsType} onChange={e => setAnalyticsType(e.target.value)}>
+                        <option value="All">All Categories</option>
+                        <option>Academic</option><option>Training</option><option>Skills</option><option>Events</option>
+                    </select>
+                </div>
+            )}
             <div className="admin-stats-grid">
               <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{total}</h4></div></div>
-              <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating} <span className="stars-small">⭐⭐⭐⭐</span></h4></div></div>
-              <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiCalendar /></div><div><p className="stat-label">Events Reviewed</p><h4 className="stat-value">12</h4></div></div>
-              <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiThumbsUp /></div><div><p className="stat-label">Positive Feedback</p><h4 className="stat-value">{posP}%</h4></div></div>
+              <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating}</h4></div></div>
+              <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiCalendar /></div><div><p className="stat-label">Sentiment Positive</p><h4 className="stat-value">{posP}%</h4></div></div>
+              <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiThumbsUp /></div><div><p className="stat-label">Sentiment Negative</p><h4 className="stat-value">{negP}%</h4></div></div>
             </div>
+            
+            
+            
             <div className="charts-row">
                 <div className="chart-box">
                     <div className="chart-header">Overall Feedback Percentage</div>
@@ -318,9 +335,9 @@ function FacultyDashboard() {
                       <td>
                         <span className={`status-pill ${reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
                           {reviewedIds.has(item._id) ? (
-                             <>Reviewed <FiCheckCircle size={14} style={{ marginLeft: '6px' }} /></>
+                              <>Reviewed <FiCheckCircle size={14} style={{ marginLeft: '6px' }} /></>
                           ) : (
-                             "Pending Review"
+                              "Pending Review"
                           )}
                         </span>
                       </td>
