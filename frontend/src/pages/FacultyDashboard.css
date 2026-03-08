@@ -482,3 +482,42 @@ textarea {
   border-color: #f59e0b; 
   color: #f59e0b;
 }
+/* --- NEW UNIFIED ANALYTICS BLOCK STYLES --- */
+.main-analytics-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.analytics-header-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.analytics-main-title {
+    font-size: 1.2rem;
+    color: #f8fafc;
+    margin: 0;
+}
+
+.analytics-selectors {
+    display: flex;
+    gap: 10px;
+}
+
+.minimal-select {
+    background: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+}
+
+.minimal-select:focus {
+    border-color: #3b82f6;
+}

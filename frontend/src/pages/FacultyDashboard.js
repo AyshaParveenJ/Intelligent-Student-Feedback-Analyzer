@@ -11,28 +11,24 @@ function FacultyDashboard() {
   const [filtered, setFiltered] = useState([]);
   const [activeMenu, setActiveMenu] = useState("dashboard");
   
-  // Analytics Filter State
-  const [analyticsType, setAnalyticsType] = useState("All");
+  // Analytics Filter States
+  const [analyticsType, setAnalyticsType] = useState("Overall Performance");
+  const [analyticsYear, setAnalyticsYear] = useState("All Years");
 
-  // View Feedback States
+  // View Feedback, Recent, and Review States
   const [typeFilter, setTypeFilter] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [search, setSearch] = useState("");
-
-  // Recent Feedback States
   const [recentDate, setRecentDate] = useState("");
   const [recentYear, setRecentYear] = useState("");
   const [recentType, setRecentType] = useState(""); 
   const [recentSearch, setRecentSearch] = useState("");
   const [recentFiltered, setRecentFiltered] = useState([]);
-
-  // Review Feedback States
   const [reviewSearch, setReviewSearch] = useState("");
   const [selectedFeedback, setSelectedFeedback] = useState(null); 
   const [response, setResponse] = useState(""); 
   
-  // Persistence logic for reviewedIds
   const [reviewedIds, setReviewedIds] = useState(() => {
     const saved = localStorage.getItem("reviewedFeedbackIds");
     return saved ? new Set(JSON.parse(saved)) : new Set();
@@ -83,16 +79,21 @@ function FacultyDashboard() {
   };
 
   const handleReviewSubmit = async () => {
-    console.log(`Responding to ${selectedFeedback._id}: ${response}`);
     setReviewedIds(prev => new Set(prev).add(selectedFeedback._id));
     alert("Response sent successfully!");
     setSelectedFeedback(null);
     setResponse("");
   };
 
-  // Dynamic Analytics Calculation
+  // UPDATED LOGIC: Separated Dashboard (Always overall) and Analytics (Filtered)
   const displayData = activeMenu === "analytics" 
-    ? (analyticsType === "All" ? feedbacks : feedbacks.filter(f => (f.feedbackType || f.type) === analyticsType))
+    ? feedbacks.filter(f => {
+        const isOverall = analyticsType === "Overall Performance";
+        const cleanType = analyticsType.replace(" Performance", "");
+        const typeMatch = isOverall || (f.feedbackType === cleanType || f.type === cleanType);
+        const yearMatch = analyticsYear === "All Years" || f.year === analyticsYear;
+        return typeMatch && yearMatch;
+      })
     : feedbacks;
 
   const ratingsMap = { "Poor": 1, "Fair": 2, "Good": 3, "Very Good": 4, "Excellent": 5 };
@@ -157,26 +158,40 @@ function FacultyDashboard() {
 
         {(activeMenu === "dashboard" || activeMenu === "analytics") && (
           <div className="admin-front-page">
-            {activeMenu === "analytics" && (
-                <div className="filter-bar-container" style={{marginBottom: '20px'}}>
-                    <select className="filter-select" value={analyticsType} onChange={e => setAnalyticsType(e.target.value)}>
-                        <option value="All">All Categories</option>
-                        <option>Academic</option><option>Training</option><option>Skills</option><option>Events</option>
-                    </select>
-                </div>
-            )}
+            
             <div className="admin-stats-grid">
               <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{total}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiCalendar /></div><div><p className="stat-label">Sentiment Positive</p><h4 className="stat-value">{posP}%</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiThumbsUp /></div><div><p className="stat-label">Sentiment Negative</p><h4 className="stat-value">{negP}%</h4></div></div>
             </div>
-            
-            
-            
+
             <div className="charts-row">
-                <div className="chart-box">
-                    <div className="chart-header">Overall Feedback Percentage</div>
+                <div className="chart-box main-analytics-container">
+                    {activeMenu === "analytics" ? (
+                      <div className="analytics-header-inline">
+                        <h2 className="analytics-main-title">{analyticsType}</h2>
+                        <div className="analytics-selectors">
+                          <select value={analyticsType} onChange={(e) => setAnalyticsType(e.target.value)} className="minimal-select">
+                            <option>Overall Performance</option>
+                            <option>Academic Performance</option>
+                            <option>Training Performance</option>
+                            <option>Events Performance</option>
+                            <option>Skills Performance</option>
+                          </select>
+                          <select value={analyticsYear} onChange={(e) => setAnalyticsYear(e.target.value)} className="minimal-select">
+                            <option>All Years</option>
+                            <option>1st Year</option>
+                            <option>2nd Year</option>
+                            <option>3rd Year</option>
+                            <option>4th Year</option>
+                          </select>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="chart-header">Overall Dashboard Performance</div>
+                    )}
+                    
                     <div className="bar-container">
                         {dist.map(d => (
                             <div className="bar-wrapper" key={d.label}>
@@ -187,10 +202,13 @@ function FacultyDashboard() {
                         ))}
                     </div>
                 </div>
+
                 <div className="chart-box">
                     <div className="chart-header"><span>Sentiment Analysis</span></div>
                     <div className="sentiment-content">
-                        <div className="pie-wrapper"><div className="pie-chart-solid" style={{ background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` }}></div></div>
+                        <div className="pie-wrapper">
+                          <div className="pie-chart-solid" style={{ background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` }}></div>
+                        </div>
                         <div className="sentiment-legend-boxed">
                             <div className="legend-box-item"><span className="dot pos"></span> Positive <b className="val-text">{posP}%</b></div>
                             <div className="legend-box-item"><span className="dot neu"></span> Neutral <b className="val-text">{neuP}%</b></div>
@@ -271,16 +289,10 @@ function FacultyDashboard() {
                 <input type="text" placeholder="Search Student..." value={recentSearch} onChange={e => setRecentSearch(e.target.value)} />
               </div>
             </div>
-
             <div className="table-container">
               <table>
                 <thead>
-                  <tr>
-                    <th>Student Name</th>
-                    <th>Date & Time</th>
-                    <th>Year</th>
-                    <th>Feedback Type</th>
-                  </tr>
+                  <tr><th>Student Name</th><th>Date & Time</th><th>Year</th><th>Feedback Type</th></tr>
                 </thead>
                 <tbody>
                   {recentFiltered.map(item => (
@@ -293,7 +305,6 @@ function FacultyDashboard() {
                   ))}
                 </tbody>
               </table>
-              {recentFiltered.length === 0 && <p style={{color: 'white', textAlign: 'center', marginTop: '20px'}}>No matching feedback found.</p>}
             </div>
           </div>
         )}
@@ -303,26 +314,13 @@ function FacultyDashboard() {
             <div className="filter-bar-container">
               <div className="filter-search-block">
                 <FiSearch color="#94a3b8" />
-                <input 
-                  type="text" 
-                  placeholder="Review specific feedback..." 
-                  value={reviewSearch} 
-                  onChange={e => setReviewSearch(e.target.value)} 
-                />
+                <input type="text" placeholder="Review specific feedback..." value={reviewSearch} onChange={e => setReviewSearch(e.target.value)} />
               </div>
             </div>
             <div className="table-container">
               <table>
                 <thead>
-                  <tr>
-                    <th>Feedback Type</th>
-                    <th>Feedback Title</th>
-                    <th>Student</th>
-                    <th>Date & Time</th>
-                    <th>Current Rating</th>
-                    <th>Review Status</th>
-                    <th>Action</th>
-                  </tr>
+                  <tr><th>Feedback Type</th><th>Feedback Title</th><th>Student</th><th>Date & Time</th><th>Current Rating</th><th>Review Status</th><th>Action</th></tr>
                 </thead>
                 <tbody>
                    {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
@@ -334,20 +332,11 @@ function FacultyDashboard() {
                       <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
                       <td>
                         <span className={`status-pill ${reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
-                          {reviewedIds.has(item._id) ? (
-                              <>Reviewed <FiCheckCircle size={14} style={{ marginLeft: '6px' }} /></>
-                          ) : (
-                              "Pending Review"
-                          )}
+                          {reviewedIds.has(item._id) ? "Reviewed" : "Pending Review"}
                         </span>
                       </td>
                       <td>
-                        <button 
-                          className="filter-btn-white" 
-                          style={{height: '30px', padding: '0 10px', fontSize: '12px', opacity: reviewedIds.has(item._id) ? 0.5 : 1}}
-                          onClick={() => !reviewedIds.has(item._id) && setSelectedFeedback(item)}
-                          disabled={reviewedIds.has(item._id)}
-                        >
+                        <button className="filter-btn-white" onClick={() => !reviewedIds.has(item._id) && setSelectedFeedback(item)} disabled={reviewedIds.has(item._id)}>
                           {reviewedIds.has(item._id) ? "Done" : "Review"}
                         </button>
                       </td>
@@ -355,51 +344,38 @@ function FacultyDashboard() {
                   ))}
                 </tbody>
               </table>
-              <div className="table-footer">
-                Showing 1 to {feedbacks.length} entries
-              </div>
             </div>
           </div>
         )}
 
-      {selectedFeedback && (
-        <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2>Review Feedback: {selectedFeedback.title}</h2>
-              <button className="close-btn" onClick={() => setSelectedFeedback(null)}><FiX /></button>
-            </div>
-
-            <div className="modal-body">
-              <div className="feedback-meta">
-                <div><label>Student</label><p>{selectedFeedback.studentName}</p></div>
-                <div><label>Feedback Type</label><p>{selectedFeedback.feedbackType || selectedFeedback.type}</p></div>
+        {selectedFeedback && (
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <div className="modal-header">
+                <h2>Review Feedback: {selectedFeedback.title}</h2>
+                <button className="close-btn" onClick={() => setSelectedFeedback(null)}><FiX /></button>
               </div>
-
-              <div className="field-group">
-                <label>Student Suggestion</label>
-                <div className="suggestion-display">
-                  {selectedFeedback.suggestions || "No suggestion provided."}
+              <div className="modal-body">
+                <div className="feedback-meta">
+                  <div><label>Student</label><p>{selectedFeedback.studentName}</p></div>
+                  <div><label>Feedback Type</label><p>{selectedFeedback.feedbackType || selectedFeedback.type}</p></div>
+                </div>
+                <div className="field-group">
+                  <label>Student Suggestion</label>
+                  <div className="suggestion-display">{selectedFeedback.suggestions || "No suggestion provided."}</div>
+                </div>
+                <div className="field-group">
+                  <label>Your Response</label>
+                  <textarea placeholder="Type your constructive feedback here..." value={response} onChange={(e) => setResponse(e.target.value)} />
                 </div>
               </div>
-
-              <div className="field-group">
-                <label>Your Response</label>
-                <textarea 
-                  placeholder="Type your constructive feedback here..." 
-                  value={response} 
-                  onChange={(e) => setResponse(e.target.value)}
-                />
+              <div className="modal-footer">
+                <button className="btn-secondary" onClick={() => setSelectedFeedback(null)}>Cancel</button>
+                <button className="btn-primary" onClick={handleReviewSubmit}>Send Response</button>
               </div>
             </div>
-
-            <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setSelectedFeedback(null)}>Cancel</button>
-              <button className="btn-primary" onClick={handleReviewSubmit}>Send Response</button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );
