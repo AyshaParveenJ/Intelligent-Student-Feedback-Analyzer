@@ -25,7 +25,9 @@ router.post("/submit", async (req, res) => {
       title,
       faculty,
       rating,
-      suggestions
+      suggestions,
+      status: "pending", // Default status when created
+      response: ""       // Default response
     });
 
     await newFeedback.save();
@@ -44,6 +46,27 @@ router.get("/all", async (req, res) => {
     const feedback = await Feedback.find().sort({ createdAt: -1 });
     res.json(feedback);
   } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// UPDATE FEEDBACK (The missing part to fix your error)
+router.patch("/:id", async (req, res) => {
+  try {
+    const { status, response } = req.body;
+    const updatedFeedback = await Feedback.findByIdAndUpdate(
+      req.params.id,
+      { status, response },
+      { new: true }
+    );
+
+    if (!updatedFeedback) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+
+    res.json(updatedFeedback);
+  } catch (error) {
+    console.error("Error updating feedback:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });

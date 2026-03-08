@@ -34,6 +34,23 @@ function Dashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   
+  const fetchUserStatus = async (name) => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/feedback/all");
+      const myFeedback = res.data.filter(f => f.studentName === name);
+      setFeedbackData(myFeedback); 
+      
+      const types = [...new Set(myFeedback.map(f => f.type))];
+      setSubmittedTypes(types);
+      
+      if (myFeedback.length > 0) {
+        setRecentActivity(myFeedback[myFeedback.length - 1]);
+      }
+    } catch (error) {
+      console.error("Error fetching status", error);
+    }
+  };
+
   useEffect(() => {
     const name = localStorage.getItem("fullName");
     const id = localStorage.getItem("studentId");
@@ -51,25 +68,14 @@ function Dashboard() {
       setShowModal(true);
     } else {
       fetchUserStatus(name);
+      
+      const interval = setInterval(() => {
+        fetchUserStatus(name);
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
   }, []);
-
-  const fetchUserStatus = async (name) => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/feedback/all");
-      const myFeedback = res.data.filter(f => f.studentName === name);
-      setFeedbackData(myFeedback); 
-      
-      const types = [...new Set(myFeedback.map(f => f.type))];
-      setSubmittedTypes(types);
-      
-      if (myFeedback.length > 0) {
-        setRecentActivity(myFeedback[myFeedback.length - 1]);
-      }
-    } catch (error) {
-      console.error("Error fetching status", error);
-    }
-  };
 
   const handleSave = () => {
     if (!studentId || !department || !year || !semester) {
@@ -89,10 +95,11 @@ function Dashboard() {
   };
 
   const calculateProgress = () => {
+    const requiredTypes = ["Academic", "Training", "Skills", "Events"];
     const uniqueSubmissions = [...new Set(feedbackData.map(item => item.type))];
-    const count = uniqueSubmissions.length;
+    const count = requiredTypes.filter(type => uniqueSubmissions.includes(type)).length;
     const percentage = count * 25;
-    return Math.min(percentage, 100);
+    return percentage;
   };
 
   const filteredData = feedbackData.filter(item => 
@@ -112,11 +119,9 @@ function Dashboard() {
           <li className={view === "dashboard" ? "active-link" : ""} onClick={() => setView("dashboard")}>
             <FiHome className="icon" /> Dashboard
           </li>
-          
           <li className={showFeedbackMenu ? "active-link" : ""} onClick={(e) => { e.stopPropagation(); setShowFeedbackMenu(!showFeedbackMenu); }}>
             <FiEdit className="icon" /> Give Feedback <FiChevronDown style={{marginLeft: "auto"}} />
           </li>
-          
           {showFeedbackMenu && (
             <ul className="submenu">
               <li onClick={() => navigate("/academic")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiBook /> Academic</li>
@@ -125,7 +130,6 @@ function Dashboard() {
               <li onClick={() => navigate("/events")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiCalendar /> Events</li>
             </ul>
           )}
-          
           <li className={view === "status" ? "active-link" : ""} onClick={() => setView("status")}>
             <FiCheckCircle className="icon" /> My Feedback Status
           </li>
@@ -148,7 +152,6 @@ function Dashboard() {
                     <h2>Welcome, {studentName} 👋</h2>
                     <p className="sub-text">Academic Overview</p>
                 </div>
-
                 <div className="profile-container" onClick={(e) => e.stopPropagation()}>
                     <div className="profile-avatar-clickable" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
                         {studentName.charAt(0).toUpperCase()}
@@ -165,19 +168,17 @@ function Dashboard() {
                     )}
                 </div>
               </header>
-
               <div className="action-buttons">
                 <button className="btn btn-blue" onClick={() => setShowFeedbackMenu(true)}>+ Give Feedback</button>
                 <button className="btn btn-purple" onClick={() => setView("history")}>View History</button>
                 <button className="btn btn-teal">View Suggestions</button>
               </div>
-
               <div className="dashboard-grid">
                 <div className="left-column">
                   <h3 className="section-title">Feedback Status</h3>
                   <div className="status-cards" style={{ display: 'flex', flexDirection: 'row', gap: '15px', marginBottom: '15px', width: '100%' }}>
                     {[
-                      { name: 'Academic ', icon: FiBook },
+                      { name: 'Academic', icon: FiBook },
                       { name: 'Training', icon: FiBriefcase },
                       { name: 'Skills', icon: FiAward },
                       { name: 'Events', icon: FiCalendar }
@@ -197,7 +198,6 @@ function Dashboard() {
                       );
                     })}
                   </div>
-           
                   <div className="progress-section" style={{ marginTop: '20px' }}>
                     <div className="progress-container-inner">
                       <div className="progress-info">
@@ -209,7 +209,6 @@ function Dashboard() {
                       </div>
                     </div>
                   </div>
-
                   <div className="ai-summary-card">
                     <h4>AI Summary</h4>
                     <div className="ai-content">
@@ -221,7 +220,6 @@ function Dashboard() {
                     </div>
                   </div>
                 </div>
-
                 <div className="right-column">
                   <h3 className="section-title">Recent Activity</h3>
                   <div className="activity-card">
@@ -243,12 +241,10 @@ function Dashboard() {
               </div>
             </>
           )}
-
           {view === "status" && (
             <div className="feedback-status-container">
               <h2 className="view-title">My Feedback Status</h2>
               <p className="sub-text">Overview of your submission progress.</p>
-              
               <div className="feedback-table-container" style={{ marginTop: "30px" }}>
                 <table className="feedback-table">
                   <thead>
@@ -266,8 +262,19 @@ function Dashboard() {
                         <td>{item.courseName || item.skillName || item.eventName || item.title || "N/A"}</td>
                         <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                         <td>
-                          <span className={`status-tag ${item.status === 'Reviewed' ? 'status-reviewed' : 'status-pending'}`}>
-                            {item.status || "Reviewed"}
+                          <span 
+                            style={{
+                              padding: '5px 12px',
+                              borderRadius: '15px',
+                              fontWeight: 'bold',
+                              fontSize: '0.85rem',
+                              // FIXED: Case-insensitive check
+                              backgroundColor: item.status?.toLowerCase() === 'reviewed' ? '#d4edda' : '#fff3cd',
+                              color: item.status?.toLowerCase() === 'reviewed' ? '#155724' : '#856404'
+                            }}
+                          >
+                            {/* FIXED: Display logic */}
+                            {item.status?.toLowerCase() === 'reviewed' ? "Reviewed" : "Pending"}
                           </span>
                         </td>
                       </tr>
@@ -277,12 +284,10 @@ function Dashboard() {
               </div>
             </div>
           )}
-
           {view === "history" && (
             <div className="feedback-status-container">
               <h2 className="view-title">Feedback History</h2>
               <p className="sub-text">Detailed log of all your submitted responses.</p>
-
               <div className="filter-tabs" style={{marginTop: "20px"}}>
                 {["All", "Academic", "Training", "Skills", "Events"].map((tab) => (
                   <button 
@@ -294,7 +299,6 @@ function Dashboard() {
                   </button>
                 ))}
               </div>
-
               <div className="feedback-table-container">
                 <h3 className="table-header-text">Feedback List</h3>
                 <table className="feedback-table">
@@ -332,37 +336,34 @@ function Dashboard() {
           )}
         </div>
       </div>
-
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box">
-             <h3>Set Your Details</h3>
-             <p className="modal-subtitle">Enter your academic information to continue</p>
-             <input type="text" className="modal-input" placeholder="Student ID" value={studentId} onChange={(e) => setStudentId(e.target.value)} />
-             <select className="modal-input" value={department} onChange={(e) => setDepartment(e.target.value)}>
+              <h3>Set Your Details</h3>
+              <p className="modal-subtitle">Enter your academic information to continue</p>
+              <input type="text" className="modal-input" placeholder="Student ID" value={studentId} onChange={(e) => setStudentId(e.target.value)} />
+              <select className="modal-input" value={department} onChange={(e) => setDepartment(e.target.value)}>
                 <option value="">Select Department</option>
                 <option>Information Technology</option><option>Computer Science</option><option>ECE</option>
-             </select>
-             <select className="modal-input" value={year} onChange={(e) => setYear(e.target.value)}>
+              </select>
+              <select className="modal-input" value={year} onChange={(e) => setYear(e.target.value)}>
                 <option value="">Select Year</option>
                 <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
-             </select>
-             <select className="modal-input" value={semester} onChange={(e) => setSemester(e.target.value)}>
+              </select>
+              <select className="modal-input" value={semester} onChange={(e) => setSemester(e.target.value)}>
                 <option value="">Select Semester</option>
                 {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={`Sem ${s}`}>Semester {s}</option>)}
-             </select>
-             <div className="modal-actions"><button className="btn-save" onClick={handleSave}>Save</button></div>
+              </select>
+              <div className="modal-actions"><button className="btn-save" onClick={handleSave}>Save</button></div>
           </div>
         </div>
       )}
-
       {showDetailModal && selectedFeedback && (
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal-box detail-modal" style={{ maxWidth: '450px', padding: '25px' }} onClick={(e) => e.stopPropagation()}>
             <div className="detail-header" style={{ marginBottom: '20px', textAlign: 'center' }}>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{selectedFeedback.type} Feedback Details</h3>
             </div>
-            
             <div className="detail-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
                 <span style={{ color: '#888' }}>
@@ -374,26 +375,22 @@ function Dashboard() {
                    {selectedFeedback.courseName || selectedFeedback.skillName || selectedFeedback.eventName || selectedFeedback.title || "N/A"}
                 </span>
               </div>
-
               {selectedFeedback.facultyName && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
                   <span style={{ color: '#888' }}>Faculty Name:</span>
                   <span style={{ fontWeight: '600' }}>{selectedFeedback.facultyName}</span>
                 </div>
               )}
-
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
                 <span style={{ color: '#888' }}>Rating:</span>
                 <span style={{ color: '#4caf50', fontWeight: 'bold' }}>
                   {selectedFeedback.rating?.replace(/\/5.*/, "") || "N/A"}
                 </span>
               </div>
-
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
                 <span style={{ color: '#888' }}>Submitted On:</span>
                 <span style={{ fontSize: '0.9rem' }}>{new Date(selectedFeedback.createdAt).toLocaleString()}</span>
               </div>
-              
               <div style={{ marginTop: '15px' }}>
                 <h4 style={{ color: '#888', marginBottom: '8px', fontSize: '1rem' }}>Suggestions:</h4>
                 <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
@@ -401,7 +398,6 @@ function Dashboard() {
                 </div>
               </div>
             </div>
-
             <div className="modal-actions" style={{ marginTop: '20px' }}>
               <button className="btn-save" style={{ width: '100%' }} onClick={() => setShowDetailModal(false)}>Close</button>
             </div>

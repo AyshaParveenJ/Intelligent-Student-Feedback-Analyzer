@@ -27,20 +27,9 @@ function FacultyDashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null); 
   const [response, setResponse] = useState(""); 
   
-  // Initializing state from localStorage to ensure persistence across reloads/logins
-  const [reviewedIds, setReviewedIds] = useState(() => {
-    const saved = localStorage.getItem("reviewedFeedbackIds");
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
-
-  // Effect to sync state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("reviewedFeedbackIds", JSON.stringify([...reviewedIds]));
-  }, [reviewedIds]);
+  const [reviewedIds, setReviewedIds] = useState(new Set());
 
   const handleLogout = () => {
-    // Note: If you want to keep reviewed data after logout, DO NOT clear "reviewedFeedbackIds" here.
-    // If you clear it, the list will reset to empty upon next login.
     localStorage.removeItem("authToken"); 
     window.location.href = "/login";
   };
@@ -49,6 +38,13 @@ function FacultyDashboard() {
     try {
       const res = await axios.get("http://localhost:5000/api/feedback/all");
       setFeedbacks(res.data);
+      
+      const reviewed = new Set(
+        res.data
+          .filter(f => f.status === 'reviewed')
+          .map(f => f._id)
+      );
+      setReviewedIds(reviewed);
     } catch (error) { console.log(error); }
   };
 
@@ -86,11 +82,23 @@ function FacultyDashboard() {
   }, [feedbacks]);
 
   const handleReviewSubmit = async () => {
-    // Add to state; the useEffect will automatically sync this to localStorage
-    setReviewedIds(prev => new Set(prev).add(selectedFeedback._id));
-    alert("Response sent successfully!");
-    setSelectedFeedback(null);
-    setResponse("");
+    try {
+      await axios.patch(`http://localhost:5000/api/feedback/${selectedFeedback._id}`, {
+        status: 'reviewed',
+        response: response
+      });
+      
+      // Update local state to reflect change immediately
+      setFeedbacks(prev => prev.map(f => f._id === selectedFeedback._id ? { ...f, status: 'reviewed' } : f));
+      setReviewedIds(prev => new Set(prev).add(selectedFeedback._id));
+      
+      alert("Response sent successfully!");
+      setSelectedFeedback(null);
+      setResponse("");
+    } catch (error) {
+      console.error(error);
+      alert("Error saving review to database.");
+    }
   };
 
   const displayData = activeMenu === "analytics" 
@@ -400,13 +408,13 @@ function FacultyDashboard() {
                       <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
                       <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
                       <td>
-                        <span className={`status-pill ${reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
-                          {reviewedIds.has(item._id) ? "Reviewed" : "Pending Review"}
+                        <span className={`status-pill ${item.status === 'reviewed' || reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
+                          {item.status === 'reviewed' || reviewedIds.has(item._id) ? "Reviewed" : "Pending Review"}
                         </span>
                       </td>
                       <td>
-                        <button className="filter-btn-white" onClick={() => !reviewedIds.has(item._id) && setSelectedFeedback(item)} disabled={reviewedIds.has(item._id)}>
-                          {reviewedIds.has(item._id) ? "Done" : "Review"}
+                        <button className="filter-btn-white" onClick={() => !(item.status === 'reviewed' || reviewedIds.has(item._id)) && setSelectedFeedback(item)} disabled={item.status === 'reviewed' || reviewedIds.has(item._id)}>
+                          {item.status === 'reviewed' || reviewedIds.has(item._id) ? "Done" : "Review"}
                         </button>
                       </td>
                     </tr>

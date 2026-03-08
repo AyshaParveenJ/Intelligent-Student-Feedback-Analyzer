@@ -660,3 +660,20 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+.status-tag {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background-color: #ffca1d; /* Yellow background */
+  color: #856404;           /* Dark yellow text */
+}
+
+.status-reviewed {
+  background-color: #afe0ba; /* Green background */
+  color: #053e12;           /* Dark green text */
+}

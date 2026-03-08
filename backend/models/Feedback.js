@@ -8,7 +8,10 @@ const feedbackSchema = new mongoose.Schema({
   title: String,
   faculty: String,
   rating: String,
-  suggestions: String
+  suggestions: String,
+  // Add these lines so the database accepts the new data
+  status: { type: String, default: "Pending" },
+  response: { type: String, default: "" }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Feedback", feedbackSchema);
