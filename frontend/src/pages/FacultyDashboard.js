@@ -213,39 +213,56 @@ function FacultyDashboard() {
                         ))}
                     </div>
 
+                    {/* Updated Section: Stacked Insights */}
                     {activeMenu === "analytics" && (
-                        <div className="key-insights-wrapper" style={{ display: "flex", gap: "15px", marginTop: "20px" }}>
-                            <div className="insight-item" style={{ flex: 1, padding: "15px", background: "#0f172a", borderRadius: "8px", border: "1px solid #1e293b", display: "flex", alignItems: "center", gap: "15px" }}>
-                                <div style={{ background: "#fef3c7", padding: "10px", borderRadius: "50%", color: "#d97706" }}><FiAward /></div>
+                        <div className="key-insights-wrapper" style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
+                            <div className="insight-item" style={{ padding: "12px", background: "#0f172a", borderRadius: "8px", border: "1px solid #1e293b", display: "flex", alignItems: "center", gap: "15px" }}>
+                                <div style={{ background: "#fef3c7", padding: "8px", borderRadius: "50%", color: "#d97706" }}><FiAward /></div>
                                 <div>
-                                <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>Most Appreciated</p>
-                                <h4 style={{ margin: "5px 0 0", color: "#f8fafc" }}>{best.title}</h4>
+                                    <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8" }}>Most Appreciated Event</p>
+                                    <h4 style={{ margin: "2px 0 0", color: "#f8fafc" }}>{best.title}</h4>
+                                    <span style={{ fontSize: "12px", color: "#d97706" }}>★ {best.avg}</span>
                                 </div>
                             </div>
-                            <div className="insight-item" style={{ flex: 1, padding: "15px", background: "#0f172a", borderRadius: "8px", border: "1px solid #1e293b", display: "flex", alignItems: "center", gap: "15px" }}>
-                                <div style={{ background: "#fee2e2", padding: "10px", borderRadius: "50%", color: "#dc2626" }}><FiAlertTriangle /></div>
+                            <div className="insight-item" style={{ padding: "12px", background: "#0f172a", borderRadius: "8px", border: "1px solid #1e293b", display: "flex", alignItems: "center", gap: "15px" }}>
+                                <div style={{ background: "#fee2e2", padding: "8px", borderRadius: "50%", color: "#dc2626" }}><FiAlertTriangle /></div>
                                 <div>
-                                <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>Most Criticized</p>
-                                <h4 style={{ margin: "5px 0 0", color: "#f8fafc" }}>{worst.title}</h4>
+                                    <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8" }}>Most Criticized Event</p>
+                                    <h4 style={{ margin: "2px 0 0", color: "#f8fafc" }}>{worst.title}</h4>
+                                    <span style={{ fontSize: "12px", color: "#dc2626" }}>★ {worst.avg}</span>
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
 
-                <div className="chart-box">
-                    <div className="chart-header"><span>Sentiment Analysis</span></div>
-                    <div className="sentiment-content">
-                        <div className="pie-wrapper">
-                          <div className="pie-chart-solid" style={{ background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` }}></div>
-                        </div>
-                        <div className="sentiment-legend-boxed">
-                            <div className="legend-box-item"><span className="dot pos"></span> Positive <b className="val-text">{posP}%</b></div>
-                            <div className="legend-box-item"><span className="dot neu"></span> Neutral <b className="val-text">{neuP}%</b></div>
-                            <div className="legend-box-item"><span className="dot neg"></span> Negative <b className="val-text">{negP}%</b></div>
-                        </div>
-                    </div>
-                </div>
+           <div className="chart-box" style={activeMenu === 'analytics' ? { display: 'flex !important', flexDirection: 'column !important', height: '100% !important', justifyContent: 'center !important' } : {}}>
+    <div className="chart-header"><span>Sentiment Analysis</span></div>
+    
+    <div className="sentiment-content" style={activeMenu === 'analytics' ? { 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        padding: '10px'
+    } : {}}>
+        
+        <div className="pie-wrapper" style={activeMenu === 'analytics' ? { 
+            width: '160px', height: '160px', marginBottom: '20px'
+        } : {}}>
+            <div className="pie-chart-solid" style={{ background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` }}></div>
+        </div>
+        
+        <div className="sentiment-legend-boxed" style={activeMenu === 'analytics' ? { 
+            width: '90%'
+        } : {}}>
+            <div className="legend-box-item"><span className="dot pos"></span> Positive <b className="val-text">{posP}%</b></div>
+            <div className="legend-box-item"><span className="dot neu"></span> Neutral <b className="val-text">{neuP}%</b></div>
+            <div className="legend-box-item"><span className="dot neg"></span> Negative <b className="val-text">{negP}%</b></div>
+        </div>
+    </div>
+</div>
             </div>
           </div>
         )}
