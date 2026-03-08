@@ -27,14 +27,23 @@ function FacultyDashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null); 
   const [response, setResponse] = useState(""); 
   
+  // Initializing state from localStorage to ensure persistence across reloads/logins
   const [reviewedIds, setReviewedIds] = useState(() => {
     const saved = localStorage.getItem("reviewedFeedbackIds");
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
 
+  // Effect to sync state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("reviewedFeedbackIds", JSON.stringify([...reviewedIds]));
   }, [reviewedIds]);
+
+  const handleLogout = () => {
+    // Note: If you want to keep reviewed data after logout, DO NOT clear "reviewedFeedbackIds" here.
+    // If you clear it, the list will reset to empty upon next login.
+    localStorage.removeItem("authToken"); 
+    window.location.href = "/login";
+  };
 
   const fetchFeedback = async () => {
     try {
@@ -77,6 +86,7 @@ function FacultyDashboard() {
   }, [feedbacks]);
 
   const handleReviewSubmit = async () => {
+    // Add to state; the useEffect will automatically sync this to localStorage
     setReviewedIds(prev => new Set(prev).add(selectedFeedback._id));
     alert("Response sent successfully!");
     setSelectedFeedback(null);
@@ -159,7 +169,7 @@ function FacultyDashboard() {
           <li className={activeMenu === "recent" ? "active-link" : ""} onClick={() => setActiveMenu("recent")}><FiClock /> Recent Feedback</li>
           <li className={activeMenu === "review" ? "active-link" : ""} onClick={() => setActiveMenu("review")}><FiCheckSquare /> Review Feedback</li>
           <li className={activeMenu === "analytics" ? "active-link" : ""} onClick={() => setActiveMenu("analytics")}><FiBarChart2 /> Analytics</li>
-          <li className="logout-item"><FiLogOut /> Logout</li>
+          <li className="logout-item" onClick={handleLogout} style={{ cursor: "pointer" }}><FiLogOut /> Logout</li>
         </ul>
       </div>
 
@@ -274,7 +284,7 @@ function FacultyDashboard() {
                           <div className="legend-box-item"><span className="dot neg"></span> Negative <b className="val-text">{negP}%</b></div>
                       </div>
                   </div>
-              </div>
+                </div>
             </div>
           </div>
         )}

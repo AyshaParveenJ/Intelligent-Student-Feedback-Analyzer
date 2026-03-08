@@ -1,18 +1,13 @@
-/* Container & Sidebar */
-.dashboard-container { 
-  display: flex; 
-  height: 100vh; /* Fixed to viewport height */
-  width: 100vw; 
-  background: #020617; 
-  color: white; 
-  font-family: 'Poppins', sans-serif; 
-  overflow: hidden; /* Disables page-level scrolling */
-}
 
+.dashboard-container {
+  display: flex;
+  height: 100vh;      /* Use viewport height */
+  overflow: hidden;   /* Prevents scrollbars on the main container */
+}/* Sidebar Updated Design */
 .sidebar { 
   width: 250px; 
-  background: #070b1d; 
-  padding: 20px; 
+  background: linear-gradient(180deg, #111933, #0c142a); /* Faculty gradient */
+  padding: 20px 0; 
   border-right: 1px solid #1e293b; 
   flex-shrink: 0; 
   display: flex;
@@ -20,9 +15,10 @@
 }
 
 .sidebar h3 { 
-  color: #22d3ee; 
-  font-size: 1.2rem; 
+  color: #3b82f6; 
+  font-size: 1.1rem; 
   margin-bottom: 30px; 
+  padding-left: 25px;
 }
 
 .sidebar ul { 
@@ -30,41 +26,80 @@
   padding: 0; 
 }
 
+/* Base item style */
 .sidebar ul li { 
-  padding: 12px 0; 
+  padding: 14px 25px; 
   display: flex; 
   align-items: center; 
   gap: 12px; 
   color: #94a3b8; 
   cursor: pointer; 
   font-size: 0.95rem; 
+  transition: 0.3s;
+  position: relative; /* Required for the glow line */
 }
 
 .sidebar ul li:hover { 
   color: #3b82f6; 
+  background: rgba(59, 130, 246, 0.05);
 }
 
+/* Active State with Glow-Fade Line */
+.active-link {
+  color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.active-link::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 5%;
+  bottom: 5%;
+  width: 1px;
+  background: #3b82f6;
+  border-radius: 2px;
+  box-shadow: 0 0 10px #3b82f6, 0 0 5px #3b82f6;
+}
+
+
+/* Submenu Styling - Properly indented */
+/* Sidebar Submenu - Force compact layout */
 .submenu {
-  padding-left: 30px;
-  margin-bottom: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .submenu li {
   font-size: 0.85rem !important;
-  padding: 8px 0 !important;
+  /* Reduced top/bottom padding to tighten the list */
+  padding: 6px 0 5px 65px !important; 
+  color: #5179b1 !important;
+  margin: 0 !important; /* Ensure no external gap */
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.submenu li:hover {
+  color: #e2e8f0 !important;
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .logout-item { 
   margin-top: auto; 
   color: #ef4444 !important; 
+  border-top: 1px solid #1e293b;
 }
-
 /* Main Viewport */
 .main-viewport { 
   flex-grow: 1; 
   padding: 20px 40px; 
   height: 100vh;
-  overflow: hidden; /* Disables viewport-level scrolling */
+  overflow-y: auto; /* Disables viewport-level scrolling */
   display: flex;
   flex-direction: column;
 }

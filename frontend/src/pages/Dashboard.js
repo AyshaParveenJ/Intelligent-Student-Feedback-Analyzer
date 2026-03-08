@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { 
   FiHome, FiEdit, FiCheckCircle, FiClock, FiBell, 
-  FiHelpCircle, FiLogOut, FiChevronDown, FiCpu, FiUser ,FiLayers, FiRefreshCw, FiSend
+  FiHelpCircle, FiLogOut, FiChevronDown, FiCpu, FiUser ,FiLayers, FiRefreshCw, FiSend,
+  FiBook, FiBriefcase, FiAward, FiCalendar 
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -87,9 +88,8 @@ function Dashboard() {
     fetchUserStatus(studentName);
   };
 
-  const uniqueSubmissions = [...new Set(feedbackData.map(item => item.type))];
-
   const calculateProgress = () => {
+    const uniqueSubmissions = [...new Set(feedbackData.map(item => item.type))];
     const count = uniqueSubmissions.length;
     const percentage = count * 25;
     return Math.min(percentage, 100);
@@ -109,20 +109,29 @@ function Dashboard() {
       <div className="sidebar">
         <div className="sidebar-brand"><h3>Main Menu</h3></div>
         <ul>
-          <li onClick={() => setView("dashboard")}><FiHome className="icon" /> Dashboard</li>
-          <li onClick={(e) => { e.stopPropagation(); setShowFeedbackMenu(!showFeedbackMenu); }}>
+          <li className={view === "dashboard" ? "active-link" : ""} onClick={() => setView("dashboard")}>
+            <FiHome className="icon" /> Dashboard
+          </li>
+          
+          <li className={showFeedbackMenu ? "active-link" : ""} onClick={(e) => { e.stopPropagation(); setShowFeedbackMenu(!showFeedbackMenu); }}>
             <FiEdit className="icon" /> Give Feedback <FiChevronDown style={{marginLeft: "auto"}} />
           </li>
+          
           {showFeedbackMenu && (
             <ul className="submenu">
-              <li onClick={() => navigate("/academic")}>Academic</li>
-              <li onClick={() => navigate("/training")}>Training</li>
-              <li onClick={() => navigate("/skills")}>Skills</li>
-              <li onClick={() => navigate("/events")}>Events</li>
+              <li onClick={() => navigate("/academic")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiBook /> Academic</li>
+              <li onClick={() => navigate("/training")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiBriefcase /> Training</li>
+              <li onClick={() => navigate("/skills")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiAward /> Skills</li>
+              <li onClick={() => navigate("/events")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiCalendar /> Events</li>
             </ul>
           )}
-          <li onClick={() => setView("status")}><FiCheckCircle className="icon" /> My Feedback Status</li>
-          <li onClick={() => setView("history")}><FiClock className="icon" /> Feedback History</li>
+          
+          <li className={view === "status" ? "active-link" : ""} onClick={() => setView("status")}>
+            <FiCheckCircle className="icon" /> My Feedback Status
+          </li>
+          <li className={view === "history" ? "active-link" : ""} onClick={() => setView("history")}>
+            <FiClock className="icon" /> Feedback History
+          </li>
           <li><FiBell className="icon" /> Notifications</li>
           <li><FiHelpCircle className="icon" /> Help / Support</li>
           <li className="logout-item" onClick={() => { localStorage.clear(); navigate("/"); }}>
@@ -130,8 +139,7 @@ function Dashboard() {
           </li>
         </ul>
       </div>
-
-      <div className="main-viewport">
+      <div className="main-viewport" style={{ overflow: 'hidden' }}>
         <div className="main-content-inner">
           {view === "dashboard" && (
             <>
@@ -167,38 +175,30 @@ function Dashboard() {
               <div className="dashboard-grid">
                 <div className="left-column">
                   <h3 className="section-title">Feedback Status</h3>
-                  <div className="status-cards">
-                    <div className="status-card academic">
-                        <FiEdit className="card-icon" />
-                        <h4>Academic Feedback</h4>
-                        <p className={submittedTypes.includes('Academic') ? "text-success" : "text-pending"}>
-                          {submittedTypes.includes('Academic') ? "Submitted ✓" : "Pending..."}
-                        </p>
-                    </div>
-                    <div className="status-card training">
-                        <FiEdit className="card-icon" />
-                        <h4>Training Feedback</h4>
-                        <p className={submittedTypes.includes('Training') ? "text-success" : "text-pending"}>
-                          {submittedTypes.includes('Training') ? "Submitted ✓" : "Pending..."}
-                        </p>
-                    </div>
-                    <div className="status-card skills">
-                        <FiEdit className="card-icon" />
-                        <h4>Skills Feedback</h4>
-                        <p className={submittedTypes.includes('Skills') ? "text-success" : "text-pending"}>
-                          {submittedTypes.includes('Skills') ? "Submitted ✓" : "Pending..."}
-                        </p>
-                    </div>
-                    <div className="status-card events">
-                        <FiEdit className="card-icon" />
-                        <h4>Events Feedback</h4>
-                        <p className={submittedTypes.includes('Events') ? "text-success" : "text-pending"}>
-                          {submittedTypes.includes('Events') ? "Submitted ✓" : "Pending..."}
-                        </p>
-                    </div>
+                  <div className="status-cards" style={{ display: 'flex', flexDirection: 'row', gap: '15px', marginBottom: '15px', width: '100%' }}>
+                    {[
+                      { name: 'Academic ', icon: FiBook },
+                      { name: 'Training', icon: FiBriefcase },
+                      { name: 'Skills', icon: FiAward },
+                      { name: 'Events', icon: FiCalendar }
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const isSubmitted = submittedTypes.includes(item.name);
+                      return (
+                        <div key={item.name} className={`status-card ${item.name.toLowerCase()}`} style={{ flex: 1, padding: '15px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Icon style={{ fontSize: '15px' }} />
+                            <h4 style={{ margin: 0 }}>{item.name}</h4>
+                          </div>
+                          <p style={{ margin: '10px 0 0 0', fontWeight: 'bold' }} className={isSubmitted ? "text-success" : "text-pending"}>
+                            {isSubmitted ? "Submitted ✓" : "Pending..."}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
-                  
-                  <div className="progress-section">
+           
+                  <div className="progress-section" style={{ marginTop: '20px' }}>
                     <div className="progress-container-inner">
                       <div className="progress-info">
                         <span>Feedback Completion</span>
@@ -244,49 +244,36 @@ function Dashboard() {
             </>
           )}
 
-{view === "status" && (
+          {view === "status" && (
             <div className="feedback-status-container">
               <h2 className="view-title">My Feedback Status</h2>
               <p className="sub-text">Overview of your submission progress.</p>
               
-              <div className="status-summary-row" style={{ marginTop: "30px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
-                
-                {/* Box 1: Total Submitted */}
-                <div className="status-card stat-total">
-                  <div className="stat-header">
-                    <FiLayers className="card-icon" />
-                    <span>Total Submitted</span>
-                  </div>
-                  <h3>{feedbackData.length}</h3>
-                </div>
-
-                {/* Box 2: Under Review */}
-                <div className="status-card stat-progress">
-                  <div className="stat-header">
-                    <FiRefreshCw className="card-icon" />
-                    <span>Under Review</span>
-                  </div>
-                  <h3>2</h3> 
-                </div>
-
-                {/* Box 3: Reviewed */}
-                <div className="status-card stat-reviewed">
-                  <div className="stat-header">
-                    <FiCheckCircle className="card-icon" />
-                    <span>Reviewed</span>
-                  </div>
-                  <h3>{feedbackData.length > 0 ? feedbackData.length - 1 : 0}</h3>
-                </div>
-
-                {/* Box 4: Action Taken */}
-                <div className="status-card stat-action">
-                  <div className="stat-header">
-                    <FiSend className="card-icon" />
-                    <span>Action Taken</span>
-                  </div>
-                  <h3>1</h3>
-                </div>
-
+              <div className="feedback-table-container" style={{ marginTop: "30px" }}>
+                <table className="feedback-table">
+                  <thead>
+                    <tr>
+                      <th style={{ padding: '16px' }}>Feedback Type</th>
+                      <th style={{ padding: '16px' }}>Event Name</th>
+                      <th style={{ padding: '16px' }}>Submitted On</th>
+                      <th style={{ padding: '16px' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {feedbackData.map((item, index) => (
+                      <tr key={index}>
+                        <td>{item.type}</td>
+                        <td>{item.courseName || item.skillName || item.eventName || item.title || "N/A"}</td>
+                        <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <span className={`status-tag ${item.status === 'Reviewed' ? 'status-reviewed' : 'status-pending'}`}>
+                            {item.status || "Reviewed"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -330,7 +317,7 @@ function Dashboard() {
                         })}</td>
                         <td>
                           <span className="status-tag submitted-alt">
-                             ✓ Submitted
+                              ✓ Submitted
                           </span>
                         </td>
                         <td>
@@ -340,15 +327,6 @@ function Dashboard() {
                     ))}
                   </tbody>
                 </table>
-                <div className="table-footer">
-                  <span>Showing {filteredData.length} entries</span>
-                  <div className="pagination">
-                    <button className="pag-btn">‹</button>
-                    <button className="pag-btn active">1</button>
-                    <span>1/1</span>
-                    <button className="pag-btn">›</button>
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -378,7 +356,6 @@ function Dashboard() {
         </div>
       )}
 
-      {/* CLEAN ALIGNED VIEW DETAILS MODAL */}
       {showDetailModal && selectedFeedback && (
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal-box detail-modal" style={{ maxWidth: '450px', padding: '25px' }} onClick={(e) => e.stopPropagation()}>
@@ -408,7 +385,6 @@ function Dashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
                 <span style={{ color: '#888' }}>Rating:</span>
                 <span style={{ color: '#4caf50', fontWeight: 'bold' }}>
-                  {/* Just showing the clean text rating like "Fair" or "Very Good" */}
                   {selectedFeedback.rating?.replace(/\/5.*/, "") || "N/A"}
                 </span>
               </div>
