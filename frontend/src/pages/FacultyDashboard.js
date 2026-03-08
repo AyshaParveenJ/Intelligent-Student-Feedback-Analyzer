@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
-  FiHome, FiClipboard, FiUsers, FiBarChart2, FiLogOut, FiSearch,
-  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiFilter, FiClock, FiCheckSquare, FiX, FiCheck, FiCheckCircle
+  FiHome, FiClipboard, FiBarChart2, FiLogOut, FiSearch,
+  FiMessageSquare, FiStar, FiCalendar, FiThumbsUp, FiClock, FiCheckSquare, FiX, FiAward, FiAlertTriangle
 } from "react-icons/fi";
 import "./FacultyDashboard.css";
 
@@ -11,11 +11,9 @@ function FacultyDashboard() {
   const [filtered, setFiltered] = useState([]);
   const [activeMenu, setActiveMenu] = useState("dashboard");
   
-  // Analytics Filter States
   const [analyticsType, setAnalyticsType] = useState("Overall Performance");
   const [analyticsYear, setAnalyticsYear] = useState("All Years");
 
-  // View Feedback, Recent, and Review States
   const [typeFilter, setTypeFilter] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
@@ -38,21 +36,6 @@ function FacultyDashboard() {
     localStorage.setItem("reviewedFeedbackIds", JSON.stringify([...reviewedIds]));
   }, [reviewedIds]);
 
-  useEffect(() => { fetchFeedback(); }, []);
-  
-  useEffect(() => {
-    if (activeMenu === "view") applyFilters();
-  }, [typeFilter, deptFilter, yearFilter, search, feedbacks, activeMenu]);
-
-  useEffect(() => {
-    if (activeMenu === "recent") applyRecentFilters();
-  }, [recentSearch, recentDate, recentYear, recentType, feedbacks, activeMenu]);
-
-  useEffect(() => { 
-    setFiltered(feedbacks); 
-    setRecentFiltered(feedbacks.slice(0, 5)); 
-  }, [feedbacks]);
-
   const fetchFeedback = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/feedback/all");
@@ -60,23 +43,38 @@ function FacultyDashboard() {
     } catch (error) { console.log(error); }
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let data = [...feedbacks];
     if (typeFilter) data = data.filter(f => (f.feedbackType === typeFilter || f.type === typeFilter));
     if (deptFilter) data = data.filter(f => f.department === deptFilter);
     if (yearFilter) data = data.filter(f => f.year === yearFilter);
     if (search) data = data.filter(f => (f.title || "").toLowerCase().includes(search.toLowerCase()));
     setFiltered(data);
-  };
+  }, [typeFilter, deptFilter, yearFilter, search, feedbacks]);
 
-  const applyRecentFilters = () => {
+  const applyRecentFilters = useCallback(() => {
     let data = [...feedbacks];
     if (recentSearch) data = data.filter(f => (f.studentName || "").toLowerCase().includes(recentSearch.toLowerCase()));
     if (recentDate) data = data.filter(f => new Date(f.createdAt).toISOString().split('T')[0] === recentDate);
     if (recentYear) data = data.filter(f => f.year === recentYear);
     if (recentType) data = data.filter(f => (f.feedbackType === recentType || f.type === recentType));
     setRecentFiltered(data);
-  };
+  }, [recentSearch, recentDate, recentYear, recentType, feedbacks]);
+
+  useEffect(() => { fetchFeedback(); }, []);
+  
+  useEffect(() => {
+    if (activeMenu === "view") applyFilters();
+  }, [activeMenu, applyFilters]);
+
+  useEffect(() => {
+    if (activeMenu === "recent") applyRecentFilters();
+  }, [activeMenu, applyRecentFilters]);
+
+  useEffect(() => { 
+    setFiltered(feedbacks); 
+    setRecentFiltered(feedbacks.slice(0, 5)); 
+  }, [feedbacks]);
 
   const handleReviewSubmit = async () => {
     setReviewedIds(prev => new Set(prev).add(selectedFeedback._id));
@@ -85,7 +83,6 @@ function FacultyDashboard() {
     setResponse("");
   };
 
-  // UPDATED LOGIC: Separated Dashboard (Always overall) and Analytics (Filtered)
   const displayData = activeMenu === "analytics" 
     ? feedbacks.filter(f => {
         const isOverall = analyticsType === "Overall Performance";
@@ -99,6 +96,21 @@ function FacultyDashboard() {
   const ratingsMap = { "Poor": 1, "Fair": 2, "Good": 3, "Very Good": 4, "Excellent": 5 };
   const total = displayData.length;
   const avgRating = total > 0 ? (displayData.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / total).toFixed(1) : "0.0";
+
+  const groupedData = displayData.reduce((acc, curr) => {
+    if (!acc[curr.title]) acc[curr.title] = { totalRating: 0, count: 0 };
+    acc[curr.title].totalRating += ratingsMap[curr.rating] || 0;
+    acc[curr.title].count += 1;
+    return acc;
+  }, {});
+
+  const rankedItems = Object.keys(groupedData).map(title => ({
+    title,
+    avg: (groupedData[title].totalRating / groupedData[title].count).toFixed(1)
+  })).sort((a, b) => b.avg - a.avg);
+
+  const best = rankedItems[0] || { title: "N/A", avg: 0 };
+  const worst = rankedItems[rankedItems.length - 1] || { title: "N/A", avg: 0 };
 
   const feedbackCategories = [
     { label: "Poor", color: "#ef4444" },
@@ -158,7 +170,6 @@ function FacultyDashboard() {
 
         {(activeMenu === "dashboard" || activeMenu === "analytics") && (
           <div className="admin-front-page">
-            
             <div className="admin-stats-grid">
               <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{total}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating}</h4></div></div>
@@ -201,6 +212,25 @@ function FacultyDashboard() {
                             </div>
                         ))}
                     </div>
+
+                    {activeMenu === "analytics" && (
+                        <div className="key-insights-wrapper" style={{ display: "flex", gap: "15px", marginTop: "20px" }}>
+                            <div className="insight-item" style={{ flex: 1, padding: "15px", background: "#0f172a", borderRadius: "8px", border: "1px solid #1e293b", display: "flex", alignItems: "center", gap: "15px" }}>
+                                <div style={{ background: "#fef3c7", padding: "10px", borderRadius: "50%", color: "#d97706" }}><FiAward /></div>
+                                <div>
+                                <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>Most Appreciated</p>
+                                <h4 style={{ margin: "5px 0 0", color: "#f8fafc" }}>{best.title}</h4>
+                                </div>
+                            </div>
+                            <div className="insight-item" style={{ flex: 1, padding: "15px", background: "#0f172a", borderRadius: "8px", border: "1px solid #1e293b", display: "flex", alignItems: "center", gap: "15px" }}>
+                                <div style={{ background: "#fee2e2", padding: "10px", borderRadius: "50%", color: "#dc2626" }}><FiAlertTriangle /></div>
+                                <div>
+                                <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8" }}>Most Criticized</p>
+                                <h4 style={{ margin: "5px 0 0", color: "#f8fafc" }}>{worst.title}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="chart-box">
