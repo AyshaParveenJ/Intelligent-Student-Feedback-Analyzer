@@ -38,13 +38,18 @@ function Dashboard() {
     try {
       const res = await axios.get("http://localhost:5000/api/feedback/all");
       const myFeedback = res.data.filter(f => f.studentName === name);
-      setFeedbackData(myFeedback); 
       
-      const types = [...new Set(myFeedback.map(f => f.type))];
+      // Sort feedback by creation date to ensure the "last" one is truly the most recent
+      const sortedFeedback = [...myFeedback].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      
+      setFeedbackData(sortedFeedback); 
+      
+      const types = [...new Set(sortedFeedback.map(f => f.type))];
       setSubmittedTypes(types);
       
-      if (myFeedback.length > 0) {
-        setRecentActivity(myFeedback[myFeedback.length - 1]);
+      if (sortedFeedback.length > 0) {
+        // Set the very last item as the recent activity
+        setRecentActivity(sortedFeedback[sortedFeedback.length - 1]);
       }
     } catch (error) {
       console.error("Error fetching status", error);
@@ -209,16 +214,19 @@ function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="ai-summary-card">
-                    <h4>AI Summary</h4>
-                    <div className="ai-content">
+                 <div className="ai-summary-card">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
                       <FiCpu className="ai-icon" />
+                      <h4 style={{ margin: 0 }}>AI Summary</h4>
+                    </div>
+                    <div className="ai-content">
                       <div>
                         <strong>Thank you for your feedback!</strong>
                         <p className="sub-text">Your inputs help us improve the academic quality at AYS.</p>
                       </div>
                     </div>
                   </div>
+
                 </div>
                 <div className="right-column">
                   <h3 className="section-title">Recent Activity</h3>
@@ -268,12 +276,10 @@ function Dashboard() {
                               borderRadius: '15px',
                               fontWeight: 'bold',
                               fontSize: '0.85rem',
-                              // FIXED: Case-insensitive check
                               backgroundColor: item.status?.toLowerCase() === 'reviewed' ? '#d4edda' : '#fff3cd',
                               color: item.status?.toLowerCase() === 'reviewed' ? '#155724' : '#856404'
                             }}
                           >
-                            {/* FIXED: Display logic */}
                             {item.status?.toLowerCase() === 'reviewed' ? "Reviewed" : "Pending"}
                           </span>
                         </td>
@@ -352,7 +358,8 @@ function Dashboard() {
               </select>
               <select className="modal-input" value={semester} onChange={(e) => setSemester(e.target.value)}>
                 <option value="">Select Semester</option>
-                {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={`Sem ${s}`}>Semester {s}</option>)}
+                <option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option>
+                <option>Sem 5</option><option>Sem 6</option><option>Sem 7</option><option>Sem 8</option>
               </select>
               <div className="modal-actions"><button className="btn-save" onClick={handleSave}>Save</button></div>
           </div>
