@@ -38,10 +38,14 @@ function Dashboard() {
     try {
       const res = await axios.get("http://localhost:5000/api/feedback/all");
       const myFeedback = res.data.filter(f => f.studentName === name);
+      
       const sortedFeedback = [...myFeedback].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      
       setFeedbackData(sortedFeedback); 
+      
       const types = [...new Set(sortedFeedback.map(f => f.type))];
       setSubmittedTypes(types);
+      
       if (sortedFeedback.length > 0) {
         setRecentActivity(sortedFeedback[sortedFeedback.length - 1]);
       }
@@ -50,62 +54,47 @@ function Dashboard() {
     }
   };
 
-  // NEW: Fetch profile from backend to see if details were already provided
   useEffect(() => {
-    const email = localStorage.getItem("userEmail"); // Assuming you store email here
     const name = localStorage.getItem("fullName");
-    setStudentName(name);
+    const id = localStorage.getItem("studentId");
+    const dept = localStorage.getItem("department");
+    const yr = localStorage.getItem("year");
+    const sem = localStorage.getItem("semester");
 
-    const checkProfile = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/student/profile/${email}`);
-        if (res.data) {
-          setSavedId(res.data.studentId);
-          setSavedDept(res.data.department);
-          setSavedYear(res.data.year);
-          setSavedSem(res.data.semester);
-          setShowModal(false);
-          fetchUserStatus(name);
-        } else {
-          setShowModal(true);
-        }
-      } catch (err) {
-        setShowModal(true);
-      }
-    };
+    if (name) setStudentName(name);
+    if (id) setSavedId(id);
+    if (dept) setSavedDept(dept);
+    if (yr) setSavedYear(yr);
+    if (sem) setSavedSem(sem);
 
-    checkProfile();
-
-    const interval = setInterval(() => { fetchUserStatus(name); }, 5000);
-    return () => clearInterval(interval);
+    if (!id || !dept || !yr || !sem) {
+      setShowModal(true);
+    } else {
+      fetchUserStatus(name);
+      
+      const interval = setInterval(() => {
+        fetchUserStatus(name);
+      }, 5000);
+      
+      return () => clearInterval(interval);
+    }
   }, []);
 
-  // NEW: Save details to backend permanently
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!studentId || !department || !year || !semester) {
       alert("Please fill in all details");
       return;
     }
-    try {
-      const email = localStorage.getItem("userEmail");
-      await axios.post("http://localhost:5000/api/student/profile", {
-        email, studentId, department, year, semester
-      });
-      
-      // Update state
-      setSavedId(studentId);
-      setSavedDept(department);
-      setSavedYear(year);
-      setSavedSem(semester);
-      
-      // Provide positive confirmation to the user
-      alert("Details saved successfully!"); 
-      
-      setShowModal(false); // Close the modal
-      fetchUserStatus(studentName);
-    } catch (err) {
-      alert("Failed to save details. Please try again.");
-    }
+    localStorage.setItem("studentId", studentId);
+    localStorage.setItem("department", department);
+    localStorage.setItem("year", year);
+    localStorage.setItem("semester", semester);
+    setSavedId(studentId);
+    setSavedDept(department);
+    setSavedYear(year);
+    setSavedSem(semester);
+    setShowModal(false);
+    fetchUserStatus(studentName);
   };
 
   const calculateProgress = () => {
@@ -223,8 +212,10 @@ function Dashboard() {
                       </div>
                     </div>
                   </div>
-                 <div className="ai-summary-card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                  
+                  {/* MODIFIED AI SUMMARY SECTION */}
+                  <div className="ai-summary-card">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                       <FiCpu className="ai-icon" />
                       <h4 style={{ margin: 0 }}>AI Summary</h4>
                     </div>
@@ -367,8 +358,7 @@ function Dashboard() {
               </select>
               <select className="modal-input" value={semester} onChange={(e) => setSemester(e.target.value)}>
                 <option value="">Select Semester</option>
-                <option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option>
-                <option>Sem 5</option><option>Sem 6</option><option>Sem 7</option><option>Sem 8</option>
+                {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={`Sem ${s}`}>Semester {s}</option>)}
               </select>
               <div className="modal-actions"><button className="btn-save" onClick={handleSave}>Save</button></div>
           </div>
