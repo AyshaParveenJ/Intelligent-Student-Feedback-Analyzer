@@ -482,6 +482,72 @@ textarea {
   border-color: #f59e0b; 
   color: #f59e0b;
 }
+
+/* --- ADD FACULTY CARD --- */
+.add-faculty-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 0;
+}
+
+.add-faculty-card {
+  width: 100%;
+  max-width: 460px;
+  background: #111933;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35);
+}
+
+.add-faculty-title {
+  margin: 0 0 20px 0;
+  color: #f8fafc;
+  font-size: 1.2rem;
+}
+
+.add-faculty-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.add-faculty-label {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.add-faculty-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #f8fafc;
+  outline: none;
+}
+
+.add-faculty-input:focus {
+  border-color: #3b82f6;
+}
+
+.add-faculty-button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-faculty-button:hover {
+  background: #2563eb;
+}
 /* --- NEW UNIFIED ANALYTICS BLOCK STYLES --- */
 .main-analytics-container {
     display: flex;

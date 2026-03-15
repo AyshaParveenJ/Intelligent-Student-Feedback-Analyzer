@@ -453,20 +453,26 @@ function AdminDashboard() {
         )}
 
         {activeMenu === "addFaculty" && (
-          <div className="view-feedback-section">
-            <div className="filter-bar-container">
-              <div className="filter-block">
-                <input className="filter-select" type="text" placeholder="Name" value={facultyName} onChange={(e) => setFacultyName(e.target.value)} />
+          <div className="add-faculty-page">
+            <div className="add-faculty-card">
+              <h3 className="add-faculty-title">Create User</h3>
+
+              <div className="add-faculty-field">
+                <label className="add-faculty-label">Name</label>
+                <input className="add-faculty-input" type="text" placeholder="Name" value={facultyName} onChange={(e) => setFacultyName(e.target.value)} />
               </div>
-              <div className="filter-block">
-                <input className="filter-select" type="email" placeholder="Email" value={facultyEmail} onChange={(e) => setFacultyEmail(e.target.value)} />
+
+              <div className="add-faculty-field">
+                <label className="add-faculty-label">Email</label>
+                <input className="add-faculty-input" type="email" placeholder="Email" value={facultyEmail} onChange={(e) => setFacultyEmail(e.target.value)} />
               </div>
-              <div className="filter-block">
-                <input className="filter-select" type="password" placeholder="Password" value={facultyPassword} onChange={(e) => setFacultyPassword(e.target.value)} />
+
+              <div className="add-faculty-field">
+                <label className="add-faculty-label">Password</label>
+                <input className="add-faculty-input" type="password" placeholder="Password" value={facultyPassword} onChange={(e) => setFacultyPassword(e.target.value)} />
               </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-primary" onClick={handleAddFaculty}>Save</button>
+
+              <button className="add-faculty-button" onClick={handleAddFaculty}>Save</button>
             </div>
           </div>
         )}
