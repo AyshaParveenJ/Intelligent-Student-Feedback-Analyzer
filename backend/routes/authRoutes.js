@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Faculty = require("../models/Faculty");
 
 const router = express.Router();
 
@@ -58,6 +59,26 @@ router.post("/login", async (req, res) => {
         message: "Admin Login Successful",
         token,
         role: "admin"
+      });
+    }
+
+    // Student Login
+    const faculty = await Faculty.findOne({ email: studentId });
+    if (faculty) {
+      const isFacultyMatch = await bcrypt.compare(password, faculty.password);
+      if (!isFacultyMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+      const token = jwt.sign(
+        { id: faculty._id, role: "faculty" },
+        "secretkey",
+        { expiresIn: "1d" }
+      );
+      return res.json({
+        message: "Login Successful",
+        token,
+        role: "faculty",
+        fullName: faculty.name
       });
     }
 

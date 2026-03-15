@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Dashboard from "./pages/Dashboard";
 import FeedbackForm from "./pages/FeedbackForm";
 import Login from "./pages/Login";
+import AdminDashboard from "./pages/adminDashboard";
 import FacultyDashboard from "./pages/FacultyDashboard";
 
 function App() {
@@ -15,8 +16,11 @@ function App() {
         {/* Student Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
 
+        {/* Admin Dashboard */}
+        <Route path="/faculty" element={<AdminDashboard />} />
+
         {/* Faculty Dashboard */}
-        <Route path="/faculty" element={<FacultyDashboard />} />
+        <Route path="/faculty-dashboard" element={<FacultyDashboard />} />
 
         {/* Separate Feedback Pages */}
         <Route path="/academic" element={<FeedbackForm type="Academic" />} />

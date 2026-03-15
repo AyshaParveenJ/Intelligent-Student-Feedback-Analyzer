@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   FiHome, FiEdit, FiCheckCircle, FiClock, FiBell, 
-  FiHelpCircle, FiLogOut, FiChevronDown, FiCpu, FiUser ,FiLayers, FiRefreshCw, FiSend,
+  FiHelpCircle, FiLogOut, FiCpu, FiUser ,FiLayers, FiRefreshCw, FiSend,
   FiBook, FiBriefcase, FiAward, FiCalendar 
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,6 @@ function Dashboard() {
   const navigate = useNavigate();
   const [studentName, setStudentName] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [showFeedbackMenu, setShowFeedbackMenu] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [view, setView] = useState("dashboard");
   const [filterTab, setFilterTab] = useState("All");
@@ -162,17 +161,9 @@ function Dashboard() {
           <li className={view === "dashboard" ? "active-link" : ""} onClick={() => setView("dashboard")}>
             <FiHome className="icon" /> Dashboard
           </li>
-          <li className={showFeedbackMenu ? "active-link" : ""} onClick={(e) => { e.stopPropagation(); setShowFeedbackMenu(!showFeedbackMenu); }}>
-            <FiEdit className="icon" /> Give Feedback <FiChevronDown style={{marginLeft: "auto"}} />
+          <li onClick={() => navigate("/academic")}>
+            <FiEdit className="icon" /> Give Feedback
           </li>
-          {showFeedbackMenu && (
-            <ul className="submenu">
-              <li onClick={() => navigate("/academic")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiBook /> Academic</li>
-              <li onClick={() => navigate("/training")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiBriefcase /> Training</li>
-              <li onClick={() => navigate("/skills")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiAward /> Skills</li>
-              <li onClick={() => navigate("/events")} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><FiCalendar /> Events</li>
-            </ul>
-          )}
           <li className={view === "status" ? "active-link" : ""} onClick={() => setView("status")}>
             <FiCheckCircle className="icon" /> My Feedback Status
           </li>
@@ -212,7 +203,7 @@ function Dashboard() {
                 </div>
               </header>
               <div className="action-buttons">
-                <button className="btn btn-blue" onClick={() => setShowFeedbackMenu(true)}>+ Give Feedback</button>
+                <button className="btn btn-blue" onClick={() => navigate("/academic")}>+ Give Feedback</button>
                 <button className="btn btn-purple" onClick={() => setView("history")}>View History</button>
                 <button className="btn btn-teal">View Suggestions</button>
               </div>

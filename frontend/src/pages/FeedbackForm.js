@@ -5,23 +5,61 @@ import "./FeedbackForm.css";
 
 function FeedbackForm({ type }) {
 
-  const navigate = useNavigate(); // 🔥 Added
+  const navigate = useNavigate(); // ðŸ”¥ Added
 
+  const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [facultyName, setFacultyName] = useState("");
   const [rating, setRating] = useState("");
   const [suggestions, setSuggestions] = useState("");
 
-  const suggestionOptions = {
-    Academic: ["Machine Learning","Artificial Intelligence","Operating Systems","DevOps"],
-    Training: ["Highend","Bytes","PBL"],
-    Skills: ["C","Java","Python"],
-    Events: ["Lecture Meeting","Orientation","Club Activities"]
+  const categoryOptions = ["Academic", "Training", "Skills", "Sports", "Hostel", "Personal"];
+
+  const titleOptions = {
+    Academic: ["Artificial Intelligence", "Machine Learning", "DevOps", "OOPS", "Cloud", "Manual Entry"],
+    Training: ["UAL", "PBL", "Bytes", "High End", "Manual Entry"],
+    Skills: ["C", "Java", "Python", "Fullstack", "Manual Entry"],
+    Sports: ["Running", "High Jump", "Long Jump", "Manual Entry"],
+    Hostel: ["Food", "Water", "Manual Entry"],
+    Personal: []
   };
+
+  const getTitleLabel = () => {
+    if (category === "Academic") return "Course:";
+    if (category === "Training") return "Training Type:";
+    if (category === "Skills") return "Skill Course:";
+    if (category === "Sports") return "Sports Category:";
+    if (category === "Hostel") return "Issue Type:";
+    if (category === "Personal") return "Regarding:";
+    return "Title";
+  };
+
+  const getTitlePlaceholder = () => {
+    if (category === "Academic") return "Enter Course:";
+    if (category === "Training") return "Enter Training Type:";
+    if (category === "Skills") return "Enter Skill Course:";
+    if (category === "Sports") return "Enter Sports Category:";
+    if (category === "Hostel") return "Enter Issue Type:";
+    if (category === "Personal") return "Enter Topic:";
+    return "Enter Title";
+  };
+
+  const getFacultyLabel = () => {
+    if (category === "Sports") return "Coach / Faculty Name:";
+    if (category === "Hostel") return "Incharge Name:";
+    return "Faculty Name";
+  };
+
+  const requiresFaculty = category && category !== "Personal";
 
   const handleSubmit = async () => {
 
-    if (!title || !facultyName || !rating) {
+    if (!category) {
+      alert("Please select a category");
+      return;
+    }
+
+    if (!title || !rating || (requiresFaculty && !facultyName)) {
       alert("Please fill all required fields");
       return;
     }
@@ -31,27 +69,27 @@ function FeedbackForm({ type }) {
       const studentName = localStorage.getItem("fullName");
       const department = localStorage.getItem("department");
       const year = localStorage.getItem("year");
-
       await axios.post("http://localhost:5000/api/feedback/submit", {
         studentName,
         department,
         year,
-        type,
+        type: category,
         title,
         faculty: facultyName,
         rating,
         suggestions
       });
 
-      alert(`${type} Feedback Submitted Successfully ✅`);
+      alert(`${category} Feedback Submitted Successfully`);
 
       // Clear fields
+      setCategory("");
       setTitle("");
       setFacultyName("");
       setRating("");
       setSuggestions("");
 
-      // 🔥 Redirect to Dashboard
+      // ðŸ”¥ Redirect to Dashboard
       navigate("/dashboard");
 
     } catch (error) {
@@ -63,55 +101,80 @@ function FeedbackForm({ type }) {
   return (
     <div className="feedback-container">
       <div className="feedback-card">
-        <h2>{type} Feedback</h2>
+        <h2>{category ? `${category} Feedback` : "Feedback"}</h2>
 
-        <label>{type} Name</label>
-        <input
-          type="text"
-          list="suggestions"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={`Enter ${type} Name`}
-        />
-
-        <datalist id="suggestions">
-          {suggestionOptions[type]?.map((item, index) => (
-            <option key={index} value={item} />
+        <label>Category</label>
+        <select
+          value={category}
+          onChange={(e) => {
+            setCategory(e.target.value);
+            setTitle("");
+            setFacultyName("");
+            setRating("");
+            setSuggestions("");
+          }}
+        >
+          <option value="">Select Category</option>
+          {categoryOptions.map((item) => (
+            <option key={item} value={item}>{item}</option>
           ))}
-        </datalist>
+        </select>
 
-        <label>Faculty Name</label>
-        <input
-          type="text"
-          value={facultyName}
-          onChange={(e) => setFacultyName(e.target.value)}
-        />
+        {category && (
+          <div>
+            <label>{getTitleLabel()}</label>
+            <input
+              type="text"
+              list="title-options"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={getTitlePlaceholder()}
+            />
 
-        <label>Rating</label>
-        <div className="rating-group">
-          {["Poor", "Fair", "Good", "Very Good", "Excellent"].map((rate) => (
-            <label key={rate} className="rating-option">
-              <input
-                type="radio"
-                name="rating"
-                value={rate}
-                checked={rating === rate}
-                onChange={(e) => setRating(e.target.value)}
-              />
-              {rate}
-            </label>
-          ))}
-        </div>
+            <datalist id="title-options">
+              {titleOptions[category]?.map((item, index) => (
+                <option key={index} value={item} />
+              ))}
+            </datalist>
 
-        <label>Suggestions</label>
-        <textarea
-          value={suggestions}
-          onChange={(e) => setSuggestions(e.target.value)}
-        />
+            {requiresFaculty && (
+              <>
+                <label>{getFacultyLabel()}</label>
+                <input
+                  type="text"
+                  value={facultyName}
+                  onChange={(e) => setFacultyName(e.target.value)}
+                />
+              </>
+            )}
 
-        <button onClick={handleSubmit}>
-          SUBMIT FEEDBACK
-        </button>
+            <label>Rating</label>
+            <div className="rating-group">
+              {["Poor", "Fair", "Good", "Very Good", "Excellent"].map((rate) => (
+                <label key={rate} className="rating-option">
+                  <input
+                    type="radio"
+                    name="rating"
+                    value={rate}
+                    checked={rating === rate}
+                    onChange={(e) => setRating(e.target.value)}
+                  />
+                  {rate}
+                </label>
+              ))}
+            </div>
+
+            <label>Suggestions</label>
+            <textarea
+              value={suggestions}
+              onChange={(e) => setSuggestions(e.target.value)}
+            />
+
+            <button onClick={handleSubmit}>
+              SUBMIT FEEDBACK
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

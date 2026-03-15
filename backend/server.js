@@ -5,6 +5,7 @@ require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
 const feedbackRoutes = require("./routes/FeedbackRoutes");
+const facultyRoutes = require("./routes/facultyRoutes");
 
 const app = express();
 
@@ -26,6 +27,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use("/api/auth", authRoutes);
 app.use("/api/feedback", feedbackRoutes);
+app.use("/api/faculty", facultyRoutes);
 
 // --- NEW ROUTES START ---
 app.post("/api/student/profile", async (req, res) => {

@@ -21,6 +21,8 @@ function Login() {
 
       if (res.data.role === "admin") {
         window.location.href = "/faculty";
+      } else if (res.data.role === "faculty") {
+        window.location.href = "/faculty-dashboard";
       } else {
         window.location.href = "/dashboard";
       }

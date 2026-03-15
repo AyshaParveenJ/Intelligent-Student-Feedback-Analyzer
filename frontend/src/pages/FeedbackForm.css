@@ -21,11 +21,12 @@
 
 .feedback-card label {
   display: block;
-  margin: 15px 0 8px;
+  margin: 7px 0 5px;
   color: #38bdf8;
 }
 
 .feedback-card input,
+.feedback-card select,
 .feedback-card textarea {
   width: 95%;
   padding: 12px;
@@ -36,7 +37,7 @@
 }
 
 .feedback-card textarea {
-  height: 80px;
+  height: 50px;
 }
 
 .rating-group {
