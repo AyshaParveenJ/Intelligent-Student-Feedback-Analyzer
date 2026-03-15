@@ -56,45 +56,85 @@ function Dashboard() {
 
   useEffect(() => {
     const name = localStorage.getItem("fullName");
-    const id = localStorage.getItem("studentId");
-    const dept = localStorage.getItem("department");
-    const yr = localStorage.getItem("year");
-    const sem = localStorage.getItem("semester");
+    const email = localStorage.getItem("loginEmail");
+    let intervalId;
 
     if (name) setStudentName(name);
-    if (id) setSavedId(id);
-    if (dept) setSavedDept(dept);
-    if (yr) setSavedYear(yr);
-    if (sem) setSavedSem(sem);
 
-    if (!id || !dept || !yr || !sem) {
-      setShowModal(true);
-    } else {
-      fetchUserStatus(name);
-      
-      const interval = setInterval(() => {
+    const loadProfile = async () => {
+      if (!email) {
+        setShowModal(true);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`http://localhost:5000/api/student/profile/${encodeURIComponent(email)}`);
+        const profile = res.data;
+
+        localStorage.setItem("studentId", profile.studentId || "");
+        localStorage.setItem("department", profile.department || "");
+        localStorage.setItem("year", profile.year || "");
+        localStorage.setItem("semester", profile.semester || "");
+
+        setSavedId(profile.studentId || "");
+        setSavedDept(profile.department || "");
+        setSavedYear(profile.year || "");
+        setSavedSem(profile.semester || "");
+
         fetchUserStatus(name);
-      }, 5000);
-      
-      return () => clearInterval(interval);
-    }
+
+        intervalId = setInterval(() => {
+          fetchUserStatus(name);
+        }, 5000);
+      } catch (error) {
+        if (error.response?.status === 404) {
+          setShowModal(true);
+        } else {
+          console.error("Error fetching profile", error);
+          setShowModal(true);
+        }
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!studentId || !department || !year || !semester) {
       alert("Please fill in all details");
       return;
     }
-    localStorage.setItem("studentId", studentId);
-    localStorage.setItem("department", department);
-    localStorage.setItem("year", year);
-    localStorage.setItem("semester", semester);
-    setSavedId(studentId);
-    setSavedDept(department);
-    setSavedYear(year);
-    setSavedSem(semester);
-    setShowModal(false);
-    fetchUserStatus(studentName);
+    const email = localStorage.getItem("loginEmail");
+    if (!email) {
+      alert("Please log in again to save your profile");
+      return;
+    }
+    try {
+      await axios.post("http://localhost:5000/api/student/profile", {
+        email,
+        studentId,
+        department,
+        year,
+        semester
+      });
+      localStorage.setItem("studentId", studentId);
+      localStorage.setItem("department", department);
+      localStorage.setItem("year", year);
+      localStorage.setItem("semester", semester);
+      setSavedId(studentId);
+      setSavedDept(department);
+      setSavedYear(year);
+      setSavedSem(semester);
+      setShowModal(false);
+      fetchUserStatus(studentName);
+    } catch (error) {
+      console.error("Error saving profile", error);
+      alert("Failed to save profile");
+    }
   };
 
   const calculateProgress = () => {

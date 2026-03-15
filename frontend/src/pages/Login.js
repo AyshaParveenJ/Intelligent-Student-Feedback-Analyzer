@@ -17,6 +17,7 @@ function Login() {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("fullName", res.data.fullName || "Admin");
+      localStorage.setItem("loginEmail", studentId);
 
       if (res.data.role === "admin") {
         window.location.href = "/faculty";
