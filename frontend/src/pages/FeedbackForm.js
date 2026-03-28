@@ -90,7 +90,7 @@ function FeedbackForm({ type }) {
       const department = localStorage.getItem("department");
       const year = localStorage.getItem("year");
       if (editId) {
-        await axios.patch(`http://localhost:5000/api/feedback/${editId}`, {
+        await axios.patch(`https://student-feedback-backend-bia4.onrender.com/api/feedback/${editId}`, {
           type: category,
           title,
           faculty: facultyName,
@@ -99,7 +99,7 @@ function FeedbackForm({ type }) {
         });
         alert(`${category} Feedback Updated Successfully`);
       } else {
-        await axios.post("http://localhost:5000/api/feedback/submit", {
+        await axios.post("https://student-feedback-backend-bia4.onrender.com/api/feedback/submit", {
           studentName,
           email,
           department,
