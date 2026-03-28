@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const feedbackSchema = new mongoose.Schema({
   studentName: String,
+  email: String,
   department: String,
   year: String,
   type: String,

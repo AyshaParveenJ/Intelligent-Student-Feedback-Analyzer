@@ -23,9 +23,9 @@ function AdminDashboard() {
   const [recentType, setRecentType] = useState(""); 
   const [recentSearch, setRecentSearch] = useState("");
   const [recentFiltered, setRecentFiltered] = useState([]);
+  const [studentIdByEmail, setStudentIdByEmail] = useState({});
   const [reviewSearch, setReviewSearch] = useState("");
-  const [selectedFeedback, setSelectedFeedback] = useState(null); 
-  const [response, setResponse] = useState(""); 
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
   
   const [reviewedIds, setReviewedIds] = useState(new Set());
   const [facultyName, setFacultyName] = useState("");
@@ -48,6 +48,25 @@ function AdminDashboard() {
           .map(f => f._id)
       );
       setReviewedIds(reviewed);
+
+      const emails = Array.from(new Set(res.data.map(f => f.email).filter(Boolean)));
+      if (emails.length) {
+        const profileResults = await Promise.all(
+          emails.map(email =>
+            axios
+              .get(`http://localhost:5000/api/student/profile/${encodeURIComponent(email)}`)
+              .then(r => ({ email, studentId: r.data?.studentId }))
+              .catch(() => ({ email, studentId: undefined }))
+          )
+        );
+        const map = {};
+        profileResults.forEach(item => {
+          if (item.email) map[item.email] = item.studentId;
+        });
+        setStudentIdByEmail(map);
+      } else {
+        setStudentIdByEmail({});
+      }
     } catch (error) { console.log(error); }
   };
 
@@ -61,7 +80,14 @@ function AdminDashboard() {
   }, [typeFilter, deptFilter, yearFilter, search, feedbacks]);
 
   const applyRecentFilters = useCallback(() => {
+    const now = new Date();
+    const isCurrentMonth = (dateValue) => {
+      if (!dateValue) return false;
+      const d = new Date(dateValue);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    };
     let data = [...feedbacks];
+    data = data.filter(f => isCurrentMonth(f.createdAt));
     if (recentSearch) data = data.filter(f => (f.studentName || "").toLowerCase().includes(recentSearch.toLowerCase()));
     if (recentDate) data = data.filter(f => new Date(f.createdAt).toISOString().split('T')[0] === recentDate);
     if (recentYear) data = data.filter(f => f.year === recentYear);
@@ -81,28 +107,14 @@ function AdminDashboard() {
 
   useEffect(() => { 
     setFiltered(feedbacks); 
-    setRecentFiltered(feedbacks.slice(0, 5)); 
+    const now = new Date();
+    const currentMonthData = feedbacks.filter(f => {
+      if (!f.createdAt) return false;
+      const d = new Date(f.createdAt);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    setRecentFiltered(currentMonthData.slice(0, 5)); 
   }, [feedbacks]);
-
-  const handleReviewSubmit = async () => {
-    try {
-      await axios.patch(`http://localhost:5000/api/feedback/${selectedFeedback._id}`, {
-        status: 'reviewed',
-        response: response
-      });
-      
-      // Update local state to reflect change immediately
-      setFeedbacks(prev => prev.map(f => f._id === selectedFeedback._id ? { ...f, status: 'reviewed' } : f));
-      setReviewedIds(prev => new Set(prev).add(selectedFeedback._id));
-      
-      alert("Response sent successfully!");
-      setSelectedFeedback(null);
-      setResponse("");
-    } catch (error) {
-      console.error(error);
-      alert("Error saving review to database.");
-    }
-  };
 
   const handleAddFaculty = async () => {
     if (!facultyName || !facultyEmail || !facultyPassword) {
@@ -396,12 +408,13 @@ function AdminDashboard() {
             <div className="table-container">
               <table>
                 <thead>
-                  <tr><th>Student Name</th><th>Date & Time</th><th>Year</th><th>Feedback Type</th></tr>
+                  <tr><th>Student Name</th><th>Student ID</th><th>Date & Time</th><th>Year</th><th>Feedback Type</th></tr>
                 </thead>
                 <tbody>
                   {recentFiltered.map(item => (
                     <tr key={item._id}>
                       <td className="td-student">{item.studentName || "Anonymous"}</td>
+                      <td className="td-student">{studentIdByEmail[item.email] || "N/A"}</td>
                       <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
                       <td className="td-year">{item.year || "N/A"}</td>
                       <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
@@ -424,28 +437,31 @@ function AdminDashboard() {
             <div className="table-container">
               <table>
                 <thead>
-                  <tr><th>Feedback Type</th><th>Feedback Title</th><th>Student</th><th>Date & Time</th><th>Current Rating</th><th>Review Status</th><th>Action</th></tr>
+                  <tr><th>Student ID</th><th>Feedback Type</th><th>Course</th><th>Rating</th><th>Date & Time</th><th>Status</th><th>Action</th></tr>
                 </thead>
                 <tbody>
-                   {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => (
-                    <tr key={item._id}>
-                      <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
-                      <td className="td-course">{item.title}</td>
-                      <td className="td-student">{item.studentName || "Anonymous"}</td>
-                      <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
-                      <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
-                      <td>
-                        <span className={`status-pill ${item.status === 'reviewed' || reviewedIds.has(item._id) ? 'reviewed' : 'pending'}`}>
-                          {item.status === 'reviewed' || reviewedIds.has(item._id) ? "Reviewed" : "Pending..."}
-                        </span>
-                      </td>
-                      <td>
-                        <button className="filter-btn-white" onClick={() => !(item.status === 'reviewed' || reviewedIds.has(item._id)) && setSelectedFeedback(item)} disabled={item.status === 'reviewed' || reviewedIds.has(item._id)}>
-                          {item.status === 'reviewed' || reviewedIds.has(item._id) ? "Done" : "Review"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                   {feedbacks.filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase())).map(item => {
+                    const hasResponse = (item.response || "").trim().length > 0;
+                    return (
+                      <tr key={item._id}>
+                        <td className="td-student">{studentIdByEmail[item.email] || "N/A"}</td>
+                        <td className="td-type">{item.feedbackType || item.type || "N/A"}</td>
+                        <td className="td-course">{item.title || "N/A"}</td>
+                        <td className={`td-rating ${getRatingClass(item.rating)}`}>{item.rating}</td>
+                        <td className="td-date">{item.createdAt ? new Date(item.createdAt).toLocaleString() : "N/A"}</td>
+                        <td>
+                          <span className={`status-pill ${hasResponse ? 'reviewed' : 'pending'}`}>
+                            {hasResponse ? "Reviewed" : "Pending"}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="filter-btn-white" onClick={() => setSelectedFeedback(item)}>
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -457,22 +473,24 @@ function AdminDashboard() {
             <div className="add-faculty-card">
               <h3 className="add-faculty-title">Create User</h3>
 
-              <div className="add-faculty-field">
-                <label className="add-faculty-label">Name</label>
-                <input className="add-faculty-input" type="text" placeholder="Name" value={facultyName} onChange={(e) => setFacultyName(e.target.value)} />
-              </div>
+              <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+                <div className="add-faculty-field">
+                  <label className="add-faculty-label">Name</label>
+                  <input className="add-faculty-input" type="text" autoComplete="off" placeholder="Name" value={facultyName} onChange={(e) => setFacultyName(e.target.value)} />
+                </div>
 
-              <div className="add-faculty-field">
-                <label className="add-faculty-label">Email</label>
-                <input className="add-faculty-input" type="email" placeholder="Email" value={facultyEmail} onChange={(e) => setFacultyEmail(e.target.value)} />
-              </div>
+                <div className="add-faculty-field">
+                  <label className="add-faculty-label">Email</label>
+                  <input className="add-faculty-input" type="email" autoComplete="off" placeholder="Email" value={facultyEmail} onChange={(e) => setFacultyEmail(e.target.value)} />
+                </div>
 
-              <div className="add-faculty-field">
-                <label className="add-faculty-label">Password</label>
-                <input className="add-faculty-input" type="password" placeholder="Password" value={facultyPassword} onChange={(e) => setFacultyPassword(e.target.value)} />
-              </div>
+                <div className="add-faculty-field">
+                  <label className="add-faculty-label">Password</label>
+                  <input className="add-faculty-input" type="password" autoComplete="new-password" placeholder="Password" value={facultyPassword} onChange={(e) => setFacultyPassword(e.target.value)} />
+                </div>
 
-              <button className="add-faculty-button" onClick={handleAddFaculty}>Save</button>
+                <button className="add-faculty-button" type="button" onClick={handleAddFaculty}>Save</button>
+              </form>
             </div>
           </div>
         )}
@@ -481,26 +499,27 @@ function AdminDashboard() {
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
-                <h2>Review Feedback: {selectedFeedback.title}</h2>
+                <h2>View Feedback: {selectedFeedback.title || "Feedback"}</h2>
                 <button className="close-btn" onClick={() => setSelectedFeedback(null)}><FiX /></button>
               </div>
               <div className="modal-body">
                 <div className="feedback-meta">
-                  <div><label>Student</label><p>{selectedFeedback.studentName}</p></div>
-                  <div><label>Feedback Type</label><p>{selectedFeedback.feedbackType || selectedFeedback.type}</p></div>
+                  <div><label>Feedback Type</label><p>{selectedFeedback.feedbackType || selectedFeedback.type || "N/A"}</p></div>
+                  <div><label>Course</label><p>{selectedFeedback.title || "N/A"}</p></div>
+                  <div><label>Date & Time</label><p>{selectedFeedback.createdAt ? new Date(selectedFeedback.createdAt).toLocaleString() : "N/A"}</p></div>
+                  <div><label>Responded At</label><p>{selectedFeedback.responseAt ? new Date(selectedFeedback.responseAt).toLocaleString() : "N/A"}</p></div>
                 </div>
                 <div className="field-group">
-                  <label>Student Suggestion</label>
+                  <label>Suggestion</label>
                   <div className="suggestion-display">{selectedFeedback.suggestions || "No suggestion provided."}</div>
                 </div>
                 <div className="field-group">
-                  <label>Your Response</label>
-                  <textarea placeholder="Type your constructive feedback here..." value={response} onChange={(e) => setResponse(e.target.value)} />
+                  <label>Response</label>
+                  <div className="suggestion-display">{selectedFeedback.response || "No response yet"}</div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button className="btn-secondary" onClick={() => setSelectedFeedback(null)}>Cancel</button>
-                <button className="btn-primary" onClick={handleReviewSubmit}>Send Response</button>
+                <button className="btn-secondary" onClick={() => setSelectedFeedback(null)}>Close</button>
               </div>
             </div>
           </div>

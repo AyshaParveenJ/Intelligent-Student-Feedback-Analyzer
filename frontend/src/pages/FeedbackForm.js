@@ -67,10 +67,12 @@ function FeedbackForm({ type }) {
     try {
 
       const studentName = localStorage.getItem("fullName");
+      const email = localStorage.getItem("loginEmail");
       const department = localStorage.getItem("department");
       const year = localStorage.getItem("year");
       await axios.post("http://localhost:5000/api/feedback/submit", {
         studentName,
+        email,
         department,
         year,
         type: category,

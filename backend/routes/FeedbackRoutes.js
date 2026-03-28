@@ -8,6 +8,7 @@ router.post("/submit", async (req, res) => {
   try {
     const {
       studentName,
+      email,
       department,
       year,
       type,
@@ -19,6 +20,7 @@ router.post("/submit", async (req, res) => {
 
     const newFeedback = new Feedback({
       studentName,
+      email,
       department,
       year,
       type,
