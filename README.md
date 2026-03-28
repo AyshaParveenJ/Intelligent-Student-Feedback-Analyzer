@@ -25,7 +25,7 @@ A comprehensive full-stack platform designed to bridge the gap between student f
 
 ---
 
-## 🛠️ Technical Stack
+##  Technical Stack
 
 | Layer | Technology |
 | :--- | :--- |
@@ -36,4 +36,8 @@ A comprehensive full-stack platform designed to bridge the gap between student f
 | **Analysis** | NLP Sentiment Analysis |
 
 ---
+
+##  Live Project Link
+
+* **Frontend Demo:** [https://student-feedback-frontend-dd89.onrender.com](https://student-feedback-frontend-dd89.onrender.com)
 
