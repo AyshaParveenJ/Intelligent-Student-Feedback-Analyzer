@@ -44,7 +44,7 @@ function AdminDashboard() {
 
   const fetchFeedback = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/feedback/all");
+      const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/all");
       setFeedbacks(res.data);
       
       const reviewed = new Set(
@@ -59,7 +59,7 @@ function AdminDashboard() {
         const profileResults = await Promise.all(
           emails.map(email =>
             axios
-              .get(`http://localhost:5000/api/student/profile/${encodeURIComponent(email)}`)
+              .get(`https://student-feedback-backend-bia4.onrender.com/api/student/profile/${encodeURIComponent(email)}`)
               .then(r => ({ email, studentId: r.data?.studentId }))
               .catch(() => ({ email, studentId: undefined }))
           )
@@ -140,12 +140,12 @@ function AdminDashboard() {
           : { name: userName, studentId: userStudentId, department: userDepartment, year: userYear, semester: userSemester, email: userEmail, password: userPassword };
       console.log("Create User Payload:", payload);
       if (userRole === "Faculty") {
-        await axios.post("http://localhost:5000/api/faculty", payload, {
+        await axios.post("https://student-feedback-backend-bia4.onrender.com/api/faculty", payload, {
           headers: { "Content-Type": "application/json" }
         });
         alert("Faculty added successfully");
       } else {
-        await axios.post("http://localhost:5000/api/students", payload, {
+        await axios.post("https://student-feedback-backend-bia4.onrender.com/api/students", payload, {
           headers: { "Content-Type": "application/json" }
         });
         alert("Student added successfully");

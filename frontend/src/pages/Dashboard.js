@@ -39,7 +39,7 @@ function Dashboard() {
   
   const fetchUserStatus = async (name) => {
     try {
-      const res = await axios.get("http://localhost:5000/api/feedback/all");
+      const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/all");
       const myFeedback = res.data.filter(f => f.studentName === name);
       
       const sortedFeedback = [...myFeedback].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -71,7 +71,7 @@ function Dashboard() {
       }
 
       try {
-        const res = await axios.get(`http://localhost:5000/api/student/profile/${encodeURIComponent(email)}`);
+        const res = await axios.get(`https://student-feedback-backend-bia4.onrender.com/api/student/profile/${encodeURIComponent(email)}`);
         const profile = res.data;
 
         localStorage.setItem("studentId", profile.studentId || "");
@@ -117,7 +117,7 @@ function Dashboard() {
       return;
     }
     try {
-      await axios.post("http://localhost:5000/api/student/profile", {
+      await axios.post("https://student-feedback-backend-bia4.onrender.com/api/student/profile", {
         email,
         studentId,
         department,
@@ -167,7 +167,7 @@ function Dashboard() {
       return;
     }
     try {
-      await axios.post("http://localhost:5000/api/student/profile", {
+      await axios.post("https://student-feedback-backend-bia4.onrender.com/api/student/profile", {
         email,
         studentId,
         department,
@@ -237,7 +237,7 @@ function Dashboard() {
         alert("Unable to delete feedback: missing ID");
         return;
       }
-      await axios.delete(`http://localhost:5000/api/feedback/${feedbackId}`);
+      await axios.delete(`https://student-feedback-backend-bia4.onrender.com/api/feedback/${feedbackId}`);
       setFeedbackData(prev => prev.filter(f => (f._id || f.id) !== feedbackId));
       fetchUserStatus(studentName);
     } catch (error) {

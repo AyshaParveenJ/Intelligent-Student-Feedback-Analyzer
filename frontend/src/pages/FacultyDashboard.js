@@ -36,7 +36,7 @@ function FacultyDashboard() {
 
   const fetchFeedback = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/feedback/all");
+      const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/all");
       setFeedbacks(res.data);
 
       const emails = Array.from(new Set(res.data.map(f => f.email).filter(Boolean)));
@@ -44,7 +44,7 @@ function FacultyDashboard() {
         const profileResults = await Promise.all(
           emails.map(email =>
             axios
-              .get(`http://localhost:5000/api/student/profile/${encodeURIComponent(email)}`)
+              .get(`https://student-feedback-backend-bia4.onrender.com/api/student/profile/${encodeURIComponent(email)}`)
               .then(r => ({ email, studentId: r.data?.studentId }))
               .catch(() => ({ email, studentId: undefined }))
           )
@@ -88,7 +88,7 @@ function FacultyDashboard() {
     if (!selectedFeedback) return;
     try {
       const responseAt = new Date().toISOString();
-      await axios.patch(`http://localhost:5000/api/feedback/${selectedFeedback._id}`, {
+      await axios.patch(`https://student-feedback-backend-bia4.onrender.com/api/feedback/${selectedFeedback._id}`, {
         status: "Reviewed",
         response: response,
         responseAt: responseAt
