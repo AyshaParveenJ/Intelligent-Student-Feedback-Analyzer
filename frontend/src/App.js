@@ -27,6 +27,9 @@ function App() {
         <Route path="/training" element={<FeedbackForm type="Training" />} />
         <Route path="/skills" element={<FeedbackForm type="Skills" />} />
         <Route path="/events" element={<FeedbackForm type="Events" />} />
+        <Route path="/sports" element={<FeedbackForm type="Sports" />} />
+        <Route path="/hostel" element={<FeedbackForm type="Hostel" />} />
+        <Route path="/personal" element={<FeedbackForm type="Personal" />} />
 
         {/* If user types wrong URL */}
         <Route path="*" element={<Navigate to="/" />} />

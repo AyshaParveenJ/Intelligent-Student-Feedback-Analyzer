@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   FiHome, FiEdit, FiCheckCircle, FiClock, FiBell, 
-  FiHelpCircle, FiLogOut, FiCpu, FiUser ,FiLayers, FiRefreshCw, FiSend,
+  FiLogOut, FiCpu, FiUser ,FiLayers, FiRefreshCw, FiSend,
   FiBook, FiBriefcase, FiAward, FiCalendar 
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ function Dashboard() {
   const [studentName, setStudentName] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showGiveFeedbackModal, setShowGiveFeedbackModal] = useState(false);
   const [view, setView] = useState("dashboard");
   const [filterTab, setFilterTab] = useState("All");
 
@@ -32,6 +33,8 @@ function Dashboard() {
 
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedReviewed, setSelectedReviewed] = useState(null);
+  const [showReviewedModal, setShowReviewedModal] = useState(false);
   
   const fetchUserStatus = async (name) => {
     try {
@@ -137,10 +140,10 @@ function Dashboard() {
   };
 
   const calculateProgress = () => {
-    const requiredTypes = ["Academic", "Training", "Skills", "Events"];
+    const requiredTypes = ["Academic", "Training", "Skills", "Events", "Sports", "Hostel", "Personal"];
     const uniqueSubmissions = [...new Set(feedbackData.map(item => item.type))];
     const count = requiredTypes.filter(type => uniqueSubmissions.includes(type)).length;
-    const percentage = count * 25;
+    const percentage = Math.round((count / requiredTypes.length) * 100);
     return percentage;
   };
 
@@ -153,6 +156,11 @@ function Dashboard() {
     setShowDetailModal(true);
   };
 
+  const handleReviewedClick = (item) => {
+    setSelectedReviewed(item);
+    setShowReviewedModal(true);
+  };
+
   return (
     <div className="dashboard-container" onClick={() => setShowProfileDropdown(false)}>
       <div className="sidebar">
@@ -161,7 +169,7 @@ function Dashboard() {
           <li className={view === "dashboard" ? "active-link" : ""} onClick={() => setView("dashboard")}>
             <FiHome className="icon" /> Dashboard
           </li>
-          <li onClick={() => navigate("/academic")}>
+          <li onClick={() => setShowGiveFeedbackModal(true)}>
             <FiEdit className="icon" /> Give Feedback
           </li>
           <li className={view === "status" ? "active-link" : ""} onClick={() => setView("status")}>
@@ -170,14 +178,12 @@ function Dashboard() {
           <li className={view === "history" ? "active-link" : ""} onClick={() => setView("history")}>
             <FiClock className="icon" /> Feedback History
           </li>
-          <li><FiBell className="icon" /> Notifications</li>
-          <li><FiHelpCircle className="icon" /> Help / Support</li>
           <li className="logout-item" onClick={() => { localStorage.clear(); navigate("/"); }}>
             <FiLogOut className="icon" /> Logout
           </li>
         </ul>
       </div>
-      <div className="main-viewport" style={{ overflow: 'hidden' }}>
+      <div className="main-viewport">
         <div className="main-content-inner">
           {view === "dashboard" && (
             <>
@@ -202,11 +208,6 @@ function Dashboard() {
                     )}
                 </div>
               </header>
-              <div className="action-buttons">
-                <button className="btn btn-blue" onClick={() => navigate("/academic")}>+ Give Feedback</button>
-                <button className="btn btn-purple" onClick={() => setView("history")}>View History</button>
-                <button className="btn btn-teal">View Suggestions</button>
-              </div>
               <div className="dashboard-grid">
                 <div className="left-column">
                   <h3 className="section-title">Feedback Status</h3>
@@ -215,7 +216,9 @@ function Dashboard() {
                       { name: 'Academic', icon: FiBook },
                       { name: 'Training', icon: FiBriefcase },
                       { name: 'Skills', icon: FiAward },
-                      { name: 'Events', icon: FiCalendar }
+                      { name: 'Events', icon: FiCalendar },
+                      { name: 'Sports', icon: FiAward },
+                      { name: 'Hostel', icon: FiLayers }
                     ].map((item) => {
                       const Icon = item.icon;
                       const isSubmitted = submittedTypes.includes(item.name);
@@ -295,21 +298,18 @@ function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {feedbackData.map((item, index) => (
+                  {[...feedbackData]
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                    .map((item, index) => (
                       <tr key={index}>
                         <td>{item.type}</td>
                         <td>{item.courseName || item.skillName || item.eventName || item.title || "N/A"}</td>
                         <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                         <td>
-                          <span 
-                            style={{
-                              padding: '5px 12px',
-                              borderRadius: '15px',
-                              fontWeight: 'bold',
-                              fontSize: '0.85rem',
-                              backgroundColor: item.status?.toLowerCase() === 'reviewed' ? '#d4edda' : '#fff3cd',
-                              color: item.status?.toLowerCase() === 'reviewed' ? '#155724' : '#856404'
-                            }}
+                          <span
+                            className={`status-pill ${item.status?.toLowerCase() === 'reviewed' ? 'reviewed' : 'pending'}`}
+                            onClick={() => item.status?.toLowerCase() === 'reviewed' && handleReviewedClick(item)}
+                            style={item.status?.toLowerCase() === 'reviewed' ? { cursor: 'pointer' } : {}}
                           >
                             {item.status?.toLowerCase() === 'reviewed' ? "Reviewed" : "Pending"}
                           </span>
@@ -337,7 +337,6 @@ function Dashboard() {
                 ))}
               </div>
               <div className="feedback-table-container">
-                <h3 className="table-header-text">Feedback List</h3>
                 <table className="feedback-table">
                   <thead>
                     <tr>
@@ -395,48 +394,106 @@ function Dashboard() {
           </div>
         </div>
       )}
+      {showGiveFeedbackModal && (
+        <div className="modal-overlay" onClick={() => setShowGiveFeedbackModal(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>Choose Category</h3>
+            <p className="modal-subtitle">Select a feedback category to continue</p>
+            <select
+              className="modal-input"
+              defaultValue=""
+              onChange={(e) => {
+                const value = e.target.value;
+                if (!value) return;
+                setShowGiveFeedbackModal(false);
+                navigate(value);
+              }}
+            >
+              <option value="">Select Category</option>
+              <option value="/academic">Academic</option>
+              <option value="/training">Training</option>
+              <option value="/skills">Skills</option>
+              <option value="/events">Events</option>
+              <option value="/sports">Sports</option>
+              <option value="/hostel">Hostel</option>
+              <option value="/personal">Personal</option>
+            </select>
+          </div>
+        </div>
+      )}
       {showDetailModal && selectedFeedback && (
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-          <div className="modal-box detail-modal" style={{ maxWidth: '450px', padding: '25px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-box detail-modal" style={{ maxWidth: '520px', padding: '20px' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ background: '#0f172a', borderRadius: '12px', padding: '16px', border: '1px solid #1e293b', boxShadow: '0 10px 20px rgba(0,0,0,0.35)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <div style={{ fontWeight: 600 }}>Course: <span style={{ fontWeight: 400 }}>{selectedFeedback.courseName || selectedFeedback.skillName || selectedFeedback.eventName || selectedFeedback.title || "N/A"}</span></div>
+                <div style={{ fontWeight: 600 }}>Rating: <span style={{ fontWeight: 400 }}>{selectedFeedback.rating?.replace(/\/5.*/, "") || "N/A"}</span></div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontWeight: 600, marginBottom: '6px' }}>Suggestion</div>
+                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word' }}>
+                  {selectedFeedback.suggestions || "No suggestions provided."}
+                </div>
+                <div style={{ marginTop: '8px', fontSize: '0.9rem' }}>
+                  <span style={{ fontWeight: 600 }}>Submitted On:</span>{" "}
+                  {selectedFeedback.createdAt ? new Date(selectedFeedback.createdAt).toLocaleString() : "N/A"}
+                </div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontWeight: 600, marginBottom: '6px' }}>Faculty Response</div>
+                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word' }}>
+                  {selectedFeedback.response || "Response not available"}
+                </div>
+                <div style={{ marginTop: '8px', fontSize: '0.9rem' }}>
+                  <span style={{ fontWeight: 600 }}>Responded At:</span>{" "}
+                  {selectedFeedback.responseAt ? new Date(selectedFeedback.responseAt).toLocaleString() : "Not responded yet"}
+                </div>
+              </div>
+            </div>
+            <div className="modal-actions" style={{ marginTop: '16px' }}>
+              <button className="btn-save" style={{ width: '100%' }} onClick={() => setShowDetailModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showReviewedModal && selectedReviewed && (
+        <div className="modal-overlay" onClick={() => setShowReviewedModal(false)}>
+          <div className="modal-box detail-modal" style={{ maxWidth: '500px', padding: '25px' }} onClick={(e) => e.stopPropagation()}>
             <div className="detail-header" style={{ marginBottom: '20px', textAlign: 'center' }}>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{selectedFeedback.type} Feedback Details</h3>
+              <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{selectedReviewed.type} Feedback</h3>
             </div>
             <div className="detail-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
-                <span style={{ color: '#888' }}>
-                  {selectedFeedback.type === "Academic" ? "Course Name:" : 
-                   selectedFeedback.type === "Skills" ? "Skill Name:" : 
-                   selectedFeedback.type === "Events" ? "Event Name:" : "Title:"}
-                </span>
-                <span style={{ fontWeight: '600' }}>
-                   {selectedFeedback.courseName || selectedFeedback.skillName || selectedFeedback.eventName || selectedFeedback.title || "N/A"}
-                </span>
+                <span style={{ color: '#888' }}>Course / Category:</span>
+                <span style={{ fontWeight: '600' }}>{selectedReviewed.courseName || selectedReviewed.skillName || selectedReviewed.eventName || selectedReviewed.title || "N/A"}</span>
               </div>
-              {selectedFeedback.facultyName && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
-                  <span style={{ color: '#888' }}>Faculty Name:</span>
-                  <span style={{ fontWeight: '600' }}>{selectedFeedback.facultyName}</span>
-                </div>
-              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
                 <span style={{ color: '#888' }}>Rating:</span>
-                <span style={{ color: '#4caf50', fontWeight: 'bold' }}>
-                  {selectedFeedback.rating?.replace(/\/5.*/, "") || "N/A"}
-                </span>
+                <span style={{ color: '#4caf50', fontWeight: 'bold' }}>{selectedReviewed.rating?.replace(/\/5.*/, "") || "N/A"}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
                 <span style={{ color: '#888' }}>Submitted On:</span>
-                <span style={{ fontSize: '0.9rem' }}>{new Date(selectedFeedback.createdAt).toLocaleString()}</span>
+                <span style={{ fontSize: '0.9rem' }}>{selectedReviewed.createdAt ? new Date(selectedReviewed.createdAt).toLocaleString() : "N/A"}</span>
               </div>
-              <div style={{ marginTop: '15px' }}>
-                <h4 style={{ color: '#888', marginBottom: '8px', fontSize: '1rem' }}>Suggestions:</h4>
+              <div style={{ marginTop: '10px' }}>
+                <h4 style={{ color: '#888', marginBottom: '8px', fontSize: '1rem' }}>Suggestion:</h4>
                 <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
-                  <p style={{ margin: 0, fontSize: '0.95rem' }}>{selectedFeedback.suggestions || "No suggestions provided."}</p>
+                  <p style={{ margin: 0, fontSize: '0.95rem' }}>{selectedReviewed.suggestions || "No suggestions provided."}</p>
                 </div>
+              </div>
+              <div style={{ marginTop: '10px' }}>
+                <h4 style={{ color: '#888', marginBottom: '8px', fontSize: '1rem' }}>Faculty Response:</h4>
+                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
+                  <p style={{ margin: 0, fontSize: '0.95rem' }}>{selectedReviewed.response || "Response not available"}</p>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #333', paddingTop: '8px' }}>
+                <span style={{ color: '#888' }}>Responded At:</span>
+                <span style={{ fontSize: '0.9rem' }}>{selectedReviewed.responseAt ? new Date(selectedReviewed.responseAt).toLocaleString() : "Response not available"}</span>
               </div>
             </div>
             <div className="modal-actions" style={{ marginTop: '20px' }}>
-              <button className="btn-save" style={{ width: '100%' }} onClick={() => setShowDetailModal(false)}>Close</button>
+              <button className="btn-save" style={{ width: '100%' }} onClick={() => setShowReviewedModal(false)}>Close</button>
             </div>
           </div>
         </div>

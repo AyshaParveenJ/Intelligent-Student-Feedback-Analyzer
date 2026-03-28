@@ -97,7 +97,7 @@
 /* Main Viewport */
 .main-viewport { 
   flex-grow: 1; 
-  padding: 20px 40px; 
+  padding: 10px 40px 20px; 
   height: 100vh;
   overflow-y: auto; /* Disables viewport-level scrolling */
   display: flex;
@@ -115,7 +115,7 @@
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
-  margin-bottom: 20px; 
+  margin-bottom: 10px; 
   flex-shrink: 0;
 }
 
@@ -172,10 +172,7 @@
 
 /* Action Buttons */
 .action-buttons { 
-  display: flex; 
-  gap: 12px; 
-  margin-bottom: 20px; 
-  flex-shrink: 0; 
+  display: none; 
 }
 
 .btn { 
@@ -209,7 +206,8 @@
 
 .section-title {
   font-size: 1.1rem;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  margin-top: 0;
   color: white;
 }
 
@@ -256,7 +254,7 @@
 /* --- FEEDBACK STATUS VIEW STYLING (THE BOLD CARDS) --- */
 .status-cards { 
   display: grid !important; 
-  grid-template-columns: repeat(4, 1fr) !important; 
+  grid-template-columns: repeat(3, 1fr) !important; 
   gap: 15px !important; 
   margin: 15px 0;
   width: 100%;
@@ -304,6 +302,8 @@
 .stat-progress, .training { background: linear-gradient(135deg, #3D1A78, #7434e2) !important; }
 .stat-reviewed, .skills { background: linear-gradient(135deg, #0E4B50, #22c55e) !important; }
 .stat-action, .events { background: linear-gradient(135deg, #7B241C, #fb7185) !important; }
+.sports { background: linear-gradient(135deg, #42500c, #94bb44) !important; }
+.hostel { background: linear-gradient(135deg, #4f2b54, #c23bbb) !important; }
 
 /* --- RECENT ACTIVITY SECTION --- */
 .activity-card {
@@ -450,10 +450,15 @@
 
 .ai-summary-card { 
   background: #0f172a; 
-  padding: 10px; 
+  padding: 15px 15px 10px; 
   border-radius: 12px; 
   border: 1px solid #1e293b;
-  margin-bottom: 30px;
+  margin-bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+  height: auto;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* Activity & Privacy (General) */
@@ -470,7 +475,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  padding: 20px 40px; 
+  padding: 10px 40px; 
   box-sizing: border-box;
 }
 
@@ -482,7 +487,7 @@
 .filter-tabs {
   display: flex;
   gap: 10px;
-  margin: 20px 0;
+  margin: 15px 0;
 }
 
 .filter-tabs button {
@@ -502,22 +507,31 @@
 }
 
 .feedback-table-container {
-  background: #111827; 
-  border-radius: 12px;
-  border: 1px solid #1f2937;
-  margin-top: 20px;
-  max-height: 450px;    
-  overflow-y: auto;     
-  overflow-x: auto;     
+  background: #111933;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 10px;
+  max-height: 350px;
+  overflow-y: auto;
+  overflow-x: auto;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 0;
 }
 
 .feedback-table thead th {
   position: sticky;
   top: 0;
-  background: #111827; 
-  z-index: 10;         
-  border-bottom: 2px solid #1f2937;
+  background: #0f172a;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.feedback-table tbody tr {
+  position: relative;
+  z-index: 1;
 }
 
 .feedback-table-container::-webkit-scrollbar {
@@ -547,21 +561,31 @@
 
 .feedback-table th {
   text-align: left;
-  padding: 16px; 
-  color: #64748b;
+  padding: 18px 20px;
+  color: #94a3b8;
   font-size: 0.85rem;
-  font-weight: 500;
-  background: #111827;
-  border-bottom: 1px solid #1e293b;
-  white-space: nowrap; 
+  font-weight: 600;
+  background: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
 }
 
 .feedback-table td {
- padding: 16px;
- text-align: left;
- white-space: nowrap; 
- overflow: hidden;
- text-overflow: ellipsis;
+  padding: 18px 20px;
+  text-align: left;
+  color: #cbd5e1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feedback-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.feedback-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05);
 }
 
 .status-tag {
@@ -570,6 +594,29 @@
   font-size: 0.8rem;
   display: inline-block;
   align-items: center;
+}
+
+.status-pill {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid;
+  text-align: center;
+}
+
+.status-pill.reviewed {
+  background-color: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.status-pill.pending {
+  background-color: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+  color: #f59e0b;
 }
 
 .submitted-alt { background: rgba(74, 222, 128, 0.1); color: #4ade80; }

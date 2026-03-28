@@ -55,10 +55,10 @@ router.get("/all", async (req, res) => {
 // UPDATE FEEDBACK (The missing part to fix your error)
 router.patch("/:id", async (req, res) => {
   try {
-    const { status, response } = req.body;
+    const { status, response, responseAt } = req.body;
     const updatedFeedback = await Feedback.findByIdAndUpdate(
       req.params.id,
-      { status, response },
+      { status, response, responseAt: responseAt || (response ? new Date() : undefined) },
       { new: true }
     );
 

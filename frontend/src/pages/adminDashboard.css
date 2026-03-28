@@ -407,6 +407,10 @@
   border: 1px solid #334155;
 }
 
+.history-modal {
+  max-width: 680px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -434,6 +438,29 @@
   color: #e2e8f0;
   border: 1px solid #334155;
   margin-bottom: 16px;
+}
+
+.history-modal .suggestion-display {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.history-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.history-item {
+  flex: 1;
+}
+
+.history-item label {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
 .field-group label { display: block; color: #94a3b8; margin-bottom: 8px; font-size: 0.9rem; }

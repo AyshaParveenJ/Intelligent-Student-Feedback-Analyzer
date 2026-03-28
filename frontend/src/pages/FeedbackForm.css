@@ -2,60 +2,70 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: auto;
   background: #020617;
+  padding: 40px 20px;
 }
 
 .feedback-card {
   background: #0f172a;
   padding: 40px;
   border-radius: 12px;
-  width: 500px;
+  width: 100%;
+  max-width: 560px;
+  margin: auto;
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
 .feedback-card h2 {
   text-align: center;
   margin-bottom: 25px;
+  color: white;
 }
 
 .feedback-card label {
   display: block;
-  margin: 8px 0 5px;
+  margin: 8px 0 6px;
   color: #38bdf8;
 }
 
-.feedback-card input,
+.feedback-card input:not([type="radio"]),
 .feedback-card select,
 .feedback-card textarea {
-  width: 95%;
-  padding: 12px;
+  width: 100%;
+  padding: 10px;
   border-radius: 8px;
   border: 1px solid #334155;
   background: #1e293b;
   color: white;
+  box-sizing: border-box;
+  margin-bottom: 14px;
 }
 
 .feedback-card textarea {
-  height: 50px;
+  height: 80px;
 }
 
 .rating-group {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 15px 0;
+  gap: 12px;
+  margin: 10px 0 16px;
+  flex-wrap: nowrap;
 }
 
 .rating-option {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 14px;
   cursor: pointer;
 }
 
 .rating-option input {
+  width: auto;
+  margin: 0 8px 0 0;
   accent-color: #38bdf8;
 }
 

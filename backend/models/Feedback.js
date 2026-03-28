@@ -12,7 +12,8 @@ const feedbackSchema = new mongoose.Schema({
   suggestions: String,
   // Add these lines so the database accepts the new data
   status: { type: String, default: "Pending" },
-  response: { type: String, default: "" }
+  response: { type: String, default: "" },
+  responseAt: { type: Date, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Feedback", feedbackSchema);
