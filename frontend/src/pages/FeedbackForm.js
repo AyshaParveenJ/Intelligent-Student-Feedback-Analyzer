@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./FeedbackForm.css";
 
 function FeedbackForm({ type }) {
 
   const navigate = useNavigate(); // ðŸ”¥ Added
+  const location = useLocation();
 
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [facultyName, setFacultyName] = useState("");
   const [rating, setRating] = useState("");
   const [suggestions, setSuggestions] = useState("");
+  const [editId, setEditId] = useState(null);
 
   const titleOptions = {
     Academic: ["Artificial Intelligence", "Machine Learning", "DevOps", "OOPS", "Cloud", "Manual Entry"],
@@ -55,6 +57,16 @@ function FeedbackForm({ type }) {
   const requiresFaculty = category && category !== "Personal";
 
   useEffect(() => {
+    const editFeedback = location.state?.editFeedback;
+    if (editFeedback) {
+      setEditId(editFeedback._id);
+      setCategory(editFeedback.type || type || "");
+      setTitle(editFeedback.title || "");
+      setFacultyName(editFeedback.faculty || editFeedback.facultyName || "");
+      setRating(editFeedback.rating || "");
+      setSuggestions(editFeedback.suggestions || "");
+      return;
+    }
     if (type) {
       setCategory(type);
       setTitle("");
@@ -62,14 +74,9 @@ function FeedbackForm({ type }) {
       setRating("");
       setSuggestions("");
     }
-  }, [type]);
+  }, [type, location.state]);
 
   const handleSubmit = async () => {
-
-    if (!category) {
-      alert("Please select a category");
-      return;
-    }
 
     if (!title || !rating || (requiresFaculty && !facultyName)) {
       alert("Please fill all required fields");
@@ -82,19 +89,30 @@ function FeedbackForm({ type }) {
       const email = localStorage.getItem("loginEmail");
       const department = localStorage.getItem("department");
       const year = localStorage.getItem("year");
-      await axios.post("http://localhost:5000/api/feedback/submit", {
-        studentName,
-        email,
-        department,
-        year,
-        type: category,
-        title,
-        faculty: facultyName,
-        rating,
-        suggestions
-      });
+      if (editId) {
+        await axios.patch(`http://localhost:5000/api/feedback/${editId}`, {
+          type: category,
+          title,
+          faculty: facultyName,
+          rating,
+          suggestions
+        });
+        alert(`${category} Feedback Updated Successfully`);
+      } else {
+        await axios.post("http://localhost:5000/api/feedback/submit", {
+          studentName,
+          email,
+          department,
+          year,
+          type: category,
+          title,
+          faculty: facultyName,
+          rating,
+          suggestions
+        });
 
-      alert(`${category} Feedback Submitted Successfully`);
+        alert(`${category} Feedback Submitted Successfully`);
+      }
 
       // Clear fields
       setCategory("");
@@ -102,6 +120,7 @@ function FeedbackForm({ type }) {
       setFacultyName("");
       setRating("");
       setSuggestions("");
+      setEditId(null);
 
       // ðŸ”¥ Redirect to Dashboard
       navigate("/dashboard");

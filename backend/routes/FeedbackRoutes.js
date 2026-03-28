@@ -55,10 +55,34 @@ router.get("/all", async (req, res) => {
 // UPDATE FEEDBACK (The missing part to fix your error)
 router.patch("/:id", async (req, res) => {
   try {
-    const { status, response, responseAt } = req.body;
+    const {
+      status,
+      response,
+      responseAt,
+      type,
+      title,
+      faculty,
+      rating,
+      suggestions
+    } = req.body;
+
+    const update = {};
+    if (status !== undefined) update.status = status;
+    if (response !== undefined) update.response = response;
+    if (responseAt !== undefined) {
+      update.responseAt = responseAt;
+    } else if (response !== undefined) {
+      update.responseAt = new Date();
+    }
+    if (type !== undefined) update.type = type;
+    if (title !== undefined) update.title = title;
+    if (faculty !== undefined) update.faculty = faculty;
+    if (rating !== undefined) update.rating = rating;
+    if (suggestions !== undefined) update.suggestions = suggestions;
+
     const updatedFeedback = await Feedback.findByIdAndUpdate(
       req.params.id,
-      { status, response, responseAt: responseAt || (response ? new Date() : undefined) },
+      update,
       { new: true }
     );
 
@@ -69,6 +93,20 @@ router.patch("/:id", async (req, res) => {
     res.json(updatedFeedback);
   } catch (error) {
     console.error("Error updating feedback:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// DELETE FEEDBACK
+router.delete("/:id", async (req, res) => {
+  try {
+    const deleted = await Feedback.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Feedback not found" });
+    }
+    res.json({ message: "Feedback deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting feedback:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });

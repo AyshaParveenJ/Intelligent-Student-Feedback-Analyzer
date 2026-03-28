@@ -28,9 +28,14 @@ function AdminDashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   
   const [reviewedIds, setReviewedIds] = useState(new Set());
-  const [facultyName, setFacultyName] = useState("");
-  const [facultyEmail, setFacultyEmail] = useState("");
-  const [facultyPassword, setFacultyPassword] = useState("");
+  const [userRole, setUserRole] = useState("Student");
+  const [userName, setUserName] = useState("");
+  const [userStudentId, setUserStudentId] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userPassword, setUserPassword] = useState("");
+  const [userDepartment, setUserDepartment] = useState("");
+  const [userYear, setUserYear] = useState("");
+  const [userSemester, setUserSemester] = useState("");
 
   const handleLogout = () => {
     localStorage.removeItem("authToken"); 
@@ -116,23 +121,45 @@ function AdminDashboard() {
     setRecentFiltered(currentMonthData.slice(0, 5)); 
   }, [feedbacks]);
 
-  const handleAddFaculty = async () => {
-    if (!facultyName || !facultyEmail || !facultyPassword) {
-      alert("Please fill all fields");
+  const handleAddUser = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!userName || !userEmail || !userPassword) {
+      alert("Please fill all required fields");
       return;
     }
+
+    if (userRole === "Student" && (!userStudentId || !userDepartment || !userYear || !userSemester)) {
+      alert("Please fill all required fields");
+      return;
+    }
+
     try {
-      await axios.post("http://localhost:5000/api/faculty", {
-        name: facultyName,
-        email: facultyEmail,
-        password: facultyPassword
-      });
-      alert("Faculty added successfully");
-      setFacultyName("");
-      setFacultyEmail("");
-      setFacultyPassword("");
+      const payload =
+        userRole === "Faculty"
+          ? { name: userName, email: userEmail, password: userPassword }
+          : { name: userName, studentId: userStudentId, department: userDepartment, year: userYear, semester: userSemester, email: userEmail, password: userPassword };
+      console.log("Create User Payload:", payload);
+      if (userRole === "Faculty") {
+        await axios.post("http://localhost:5000/api/faculty", payload, {
+          headers: { "Content-Type": "application/json" }
+        });
+        alert("Faculty added successfully");
+      } else {
+        await axios.post("http://localhost:5000/api/students", payload, {
+          headers: { "Content-Type": "application/json" }
+        });
+        alert("Student added successfully");
+      }
+
+      setUserName("");
+      setUserStudentId("");
+      setUserEmail("");
+      setUserPassword("");
+      setUserDepartment("");
+      setUserYear("");
+      setUserSemester("");
     } catch (error) {
-      alert(error.response?.data?.message || "Error adding faculty");
+      alert(error.response?.data?.message || "Error adding user");
     }
   };
 
@@ -212,7 +239,7 @@ function AdminDashboard() {
           <li className={activeMenu === "recent" ? "active-link" : ""} onClick={() => setActiveMenu("recent")}><FiClock /> Recent Feedback</li>
           <li className={activeMenu === "review" ? "active-link" : ""} onClick={() => setActiveMenu("review")}><FiCheckSquare /> Review Feedback</li>
           <li className={activeMenu === "analytics" ? "active-link" : ""} onClick={() => setActiveMenu("analytics")}><FiBarChart2 /> Analytics</li>
-          <li className={activeMenu === "addFaculty" ? "active-link" : ""} onClick={() => setActiveMenu("addFaculty")}><FiUserPlus /> Add Faculty</li>
+          <li className={activeMenu === "addFaculty" ? "active-link" : ""} onClick={() => setActiveMenu("addFaculty")}><FiUserPlus /> Add User</li>
           <li className="logout-item" onClick={handleLogout} style={{ cursor: "pointer" }}><FiLogOut /> Logout</li>
         </ul>
       </div>
@@ -221,7 +248,6 @@ function AdminDashboard() {
         {activeMenu === "dashboard" && (
           <div className="admin-header-flex">
               <h2>Welcome, Admin 👋</h2>
-              <div className="top-search"><FiSearch /><input type="text" placeholder="Search" /></div>
           </div>
         )}
 
@@ -471,25 +497,92 @@ function AdminDashboard() {
         {activeMenu === "addFaculty" && (
           <div className="add-faculty-page">
             <div className="add-faculty-card">
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+                <FiUserPlus style={{ fontSize: "28px", color: "#3b82f6" }} />
+              </div>
               <h3 className="add-faculty-title">Create User</h3>
 
-              <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+              <form autoComplete="off" onSubmit={handleAddUser}>
                 <div className="add-faculty-field">
-                  <label className="add-faculty-label">Name</label>
-                  <input className="add-faculty-input" type="text" autoComplete="off" placeholder="Name" value={facultyName} onChange={(e) => setFacultyName(e.target.value)} />
+                  <label className="add-faculty-label">Role</label>
+                  <select className="add-faculty-input" value={userRole} onChange={(e) => setUserRole(e.target.value)}>
+                    <option>Student</option>
+                    <option>Faculty</option>
+                  </select>
                 </div>
 
-                <div className="add-faculty-field">
-                  <label className="add-faculty-label">Email</label>
-                  <input className="add-faculty-input" type="email" autoComplete="off" placeholder="Email" value={facultyEmail} onChange={(e) => setFacultyEmail(e.target.value)} />
-                </div>
+                {userRole === "Student" ? (
+                  <>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <div className="add-faculty-field" style={{ flex: 1 }}>
+                        <label className="add-faculty-label">Name</label>
+                        <input className="add-faculty-input" type="text" autoComplete="off" placeholder="Name" value={userName} onChange={(e) => setUserName(e.target.value)} />
+                      </div>
+                      <div className="add-faculty-field" style={{ flex: 1 }}>
+                        <label className="add-faculty-label">Student ID</label>
+                        <input className="add-faculty-input" type="text" autoComplete="off" placeholder="Student ID" value={userStudentId} onChange={(e) => setUserStudentId(e.target.value)} />
+                      </div>
+                    </div>
 
-                <div className="add-faculty-field">
-                  <label className="add-faculty-label">Password</label>
-                  <input className="add-faculty-input" type="password" autoComplete="new-password" placeholder="Password" value={facultyPassword} onChange={(e) => setFacultyPassword(e.target.value)} />
-                </div>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <div className="add-faculty-field" style={{ flex: 1 }}>
+                        <label className="add-faculty-label">Department</label>
+                        <select className="add-faculty-input" value={userDepartment} onChange={(e) => setUserDepartment(e.target.value)}>
+                          <option value="">Select Department</option>
+                          <option>Information Technology</option>
+                          <option>Computer Science</option>
+                          <option>ECE</option>
+                        </select>
+                      </div>
+                      <div className="add-faculty-field" style={{ flex: 1 }}>
+                        <label className="add-faculty-label">Semester</label>
+                        <select className="add-faculty-input" value={userSemester} onChange={(e) => setUserSemester(e.target.value)}>
+                          <option value="">Select Semester</option>
+                          {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={`Sem ${s}`}>Semester {s}</option>)}
+                        </select>
+                      </div>
+                      <div className="add-faculty-field" style={{ flex: 1 }}>
+                        <label className="add-faculty-label">Year</label>
+                        <select className="add-faculty-input" value={userYear} onChange={(e) => setUserYear(e.target.value)}>
+                          <option value="">Select Year</option>
+                          <option>1st Year</option>
+                          <option>2nd Year</option>
+                          <option>3rd Year</option>
+                          <option>4th Year</option>
+                        </select>
+                      </div>
+                    </div>
 
-                <button className="add-faculty-button" type="button" onClick={handleAddFaculty}>Save</button>
+                    <div className="add-faculty-field">
+                      <label className="add-faculty-label">Email</label>
+                      <input className="add-faculty-input" type="email" autoComplete="off" placeholder="Email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} />
+                    </div>
+
+                    <div className="add-faculty-field">
+                      <label className="add-faculty-label">Password</label>
+                      <input className="add-faculty-input" type="password" autoComplete="new-password" placeholder="Password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="add-faculty-field">
+                      <label className="add-faculty-label">Name</label>
+                      <input className="add-faculty-input" type="text" autoComplete="off" placeholder="Name" value={userName} onChange={(e) => setUserName(e.target.value)} />
+                    </div>
+
+                    <div className="add-faculty-field">
+                      <label className="add-faculty-label">Email</label>
+                      <input className="add-faculty-input" type="email" autoComplete="off" placeholder="Email" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} />
+                    </div>
+
+                    <div className="add-faculty-field">
+                      <label className="add-faculty-label">Password</label>
+                      <input className="add-faculty-input" type="password" autoComplete="new-password" placeholder="Password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} />
+                    </div>
+                  </>
+                )}
+
+                <button className="add-faculty-button" type="submit">Save</button>
               </form>
             </div>
           </div>

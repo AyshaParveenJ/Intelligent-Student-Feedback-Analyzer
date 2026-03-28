@@ -7,6 +7,7 @@ const router = express.Router();
 // Add Faculty
 router.post("/", async (req, res) => {
   try {
+    console.log("Create Faculty Payload:", req.body);
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {

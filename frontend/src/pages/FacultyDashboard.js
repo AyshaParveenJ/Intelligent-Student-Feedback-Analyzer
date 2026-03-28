@@ -15,6 +15,9 @@ function FacultyDashboard() {
   const [filtered, setFiltered] = useState([]);
   const [studentIdByEmail, setStudentIdByEmail] = useState({});
   const [reviewSearch, setReviewSearch] = useState("");
+  const [studentIdQuery, setStudentIdQuery] = useState("");
+  const [selectedFeedbackType, setSelectedFeedbackType] = useState("");
+  const [selectedRating, setSelectedRating] = useState("");
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [historySelected, setHistorySelected] = useState(null);
   const [response, setResponse] = useState("");
@@ -119,6 +122,25 @@ function FacultyDashboard() {
   const avgRating = totalFeedback > 0
     ? (filtered.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / totalFeedback).toFixed(1)
     : "0.0";
+  const feedbackCategories = [
+    { label: "Poor", color: "#ef4444" },
+    { label: "Fair", color: "#f97316" },
+    { label: "Very Good", color: "#fbbf24" },
+    { label: "Good", color: "#4ade80" },
+    { label: "Excellent", color: "#22d3ee" }
+  ];
+  const dist = feedbackCategories.map(cat => {
+    const count = filtered.filter(f => f.rating === cat.label).length;
+    const percentage = totalFeedback > 0 ? ((count / totalFeedback) * 100).toFixed(1) : "0.0";
+    return { ...cat, percentage, height: totalFeedback > 0 ? (count / totalFeedback) * 100 : 0 };
+  });
+  const positive = filtered.filter(f => ["Very Good", "Excellent"].includes(f.rating)).length;
+  const neutral = filtered.filter(f => f.rating === "Good").length;
+  const negative = filtered.filter(f => ["Poor", "Fair"].includes(f.rating)).length;
+  const getPercent = (count) => (totalFeedback > 0 ? Math.round((count / totalFeedback) * 100) : 0);
+  const posP = getPercent(positive);
+  const neuP = getPercent(neutral);
+  const negP = getPercent(negative);
 
   const openProfileEdit = () => {
     setEditName(facultyName || "");
@@ -175,7 +197,34 @@ function FacultyDashboard() {
               <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiCheckSquare /></div><div><p className="stat-label">Reviewed Feedback</p><h4 className="stat-value">{reviewedCount}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating}</h4></div></div>
             </div>
-            <div className="view-feedback-section" />
+            <div className="charts-row">
+              <div className="chart-box main-analytics-container">
+                <div className="chart-header">Overall Dashboard Performance</div>
+                <div className="bar-container">
+                  {dist.map(d => (
+                    <div className="bar-wrapper" key={d.label}>
+                      <span className="bar-percentage">{d.percentage}%</span>
+                      <div className="bar-fill" style={{ height: `${Math.max(d.height, 5)}%`, backgroundColor: d.color }}></div>
+                      <span className="bar-label">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="chart-box">
+                <div className="chart-header"><span>Sentiment Analysis</span></div>
+                <div className="sentiment-content">
+                  <div className="pie-wrapper">
+                    <div className="pie-chart-solid" style={{ background: `conic-gradient(#22c55e 0% ${posP}%, #f59e0b ${posP}% ${posP + neuP}%, #ef4444 ${posP + neuP}% 100%)` }}></div>
+                  </div>
+                  <div className="sentiment-legend-boxed">
+                    <div className="legend-box-item"><span className="dot pos"></span> Positive <b className="val-text">{posP}%</b></div>
+                    <div className="legend-box-item"><span className="dot neu"></span> Neutral <b className="val-text">{neuP}%</b></div>
+                    <div className="legend-box-item"><span className="dot neg"></span> Negative <b className="val-text">{negP}%</b></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </>
         )}
 
@@ -186,6 +235,32 @@ function FacultyDashboard() {
                 <FiSearch color="#94a3b8" />
                 <input type="text" placeholder="Search feedback..." value={reviewSearch} onChange={e => setReviewSearch(e.target.value)} />
               </div>
+              <div className="filter-search-block">
+                <FiSearch color="#94a3b8" />
+                <input type="text" placeholder="Search Student ID..." value={studentIdQuery} onChange={e => setStudentIdQuery(e.target.value)} />
+              </div>
+              <div className="filter-block">
+                <select className="filter-select" value={selectedFeedbackType} onChange={e => setSelectedFeedbackType(e.target.value)}>
+                  <option value="">Feedback Type</option>
+                  <option>Academic</option>
+                  <option>Training</option>
+                  <option>Skills</option>
+                  <option>Events</option>
+                  <option>Sports</option>
+                  <option>Hostel</option>
+                  <option>Personal</option>
+                </select>
+              </div>
+              <div className="filter-block">
+                <select className="filter-select" value={selectedRating} onChange={e => setSelectedRating(e.target.value)}>
+                  <option value="">Rating</option>
+                  <option>Poor</option>
+                  <option>Fair</option>
+                  <option>Good</option>
+                  <option>Very Good</option>
+                  <option>Excellent</option>
+                </select>
+              </div>
             </div>
             <div className="table-container">
               <table>
@@ -195,6 +270,12 @@ function FacultyDashboard() {
                 <tbody>
                   {filtered
                     .filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase()))
+                    .filter(f => {
+                      const studentId = (studentIdByEmail[f.email] || "").toString().toLowerCase();
+                      return studentId.includes(studentIdQuery.toLowerCase());
+                    })
+                    .filter(f => selectedFeedbackType ? ((f.feedbackType || f.type || "") === selectedFeedbackType) : true)
+                    .filter(f => selectedRating ? ((f.rating || "") === selectedRating) : true)
                     .map(item => {
                       const isReviewed = getReviewStatus(item);
                       return (
@@ -221,6 +302,19 @@ function FacultyDashboard() {
                         </tr>
                       );
                     })}
+                  {filtered
+                    .filter(f => (f.title || "").toLowerCase().includes(reviewSearch.toLowerCase()))
+                    .filter(f => {
+                      const studentId = (studentIdByEmail[f.email] || "").toString().toLowerCase();
+                      return studentId.includes(studentIdQuery.toLowerCase());
+                    })
+                    .filter(f => selectedFeedbackType ? ((f.feedbackType || f.type || "") === selectedFeedbackType) : true)
+                    .filter(f => selectedRating ? ((f.rating || "") === selectedRating) : true)
+                    .length === 0 && (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>No feedback found</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

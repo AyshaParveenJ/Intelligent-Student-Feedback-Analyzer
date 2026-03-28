@@ -16,6 +16,7 @@ function Dashboard() {
   const [showGiveFeedbackModal, setShowGiveFeedbackModal] = useState(false);
   const [view, setView] = useState("dashboard");
   const [filterTab, setFilterTab] = useState("All");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const [studentId, setStudentId] = useState("");
   const [department, setDepartment] = useState("");
@@ -139,6 +140,56 @@ function Dashboard() {
     }
   };
 
+  const handleProfileEdit = () => {
+    setStudentId(savedId || "");
+    setDepartment(savedDept || "");
+    setYear(savedYear || "");
+    setSemester(savedSem || "");
+    setIsEditingProfile(true);
+  };
+
+  const handleProfileCancel = () => {
+    setStudentId(savedId || "");
+    setDepartment(savedDept || "");
+    setYear(savedYear || "");
+    setSemester(savedSem || "");
+    setIsEditingProfile(false);
+  };
+
+  const handleProfileSave = async () => {
+    if (!studentId || !department || !year || !semester) {
+      alert("Please fill in all details");
+      return;
+    }
+    const email = localStorage.getItem("loginEmail");
+    if (!email) {
+      alert("Please log in again to save your profile");
+      return;
+    }
+    try {
+      await axios.post("http://localhost:5000/api/student/profile", {
+        email,
+        studentId,
+        department,
+        year,
+        semester
+      });
+      localStorage.setItem("studentId", studentId);
+      localStorage.setItem("department", department);
+      localStorage.setItem("year", year);
+      localStorage.setItem("semester", semester);
+      setSavedId(studentId);
+      setSavedDept(department);
+      setSavedYear(year);
+      setSavedSem(semester);
+      setIsEditingProfile(false);
+      fetchUserStatus(studentName);
+    } catch (error) {
+      console.error("Error saving profile", error);
+      alert("Failed to save profile");
+    }
+  };
+
   const calculateProgress = () => {
     const requiredTypes = ["Academic", "Training", "Skills", "Events", "Sports", "Hostel", "Personal"];
     const uniqueSubmissions = [...new Set(feedbackData.map(item => item.type))];
@@ -159,6 +210,40 @@ function Dashboard() {
   const handleReviewedClick = (item) => {
     setSelectedReviewed(item);
     setShowReviewedModal(true);
+  };
+
+  const getCategoryPath = (type) => {
+    const t = (type || "").toLowerCase();
+    if (t === "academic") return "/academic";
+    if (t === "training") return "/training";
+    if (t === "skills") return "/skills";
+    if (t === "events") return "/events";
+    if (t === "sports") return "/sports";
+    if (t === "hostel") return "/hostel";
+    if (t === "personal") return "/personal";
+    return "/academic";
+  };
+
+  const handleEditFeedback = (item) => {
+    navigate(getCategoryPath(item.type), { state: { editFeedback: item } });
+  };
+
+  const handleDeleteFeedback = async (item) => {
+    const ok = window.confirm("Are you sure you want to delete this feedback?");
+    if (!ok) return;
+    try {
+      const feedbackId = item._id || item.id;
+      if (!feedbackId) {
+        alert("Unable to delete feedback: missing ID");
+        return;
+      }
+      await axios.delete(`http://localhost:5000/api/feedback/${feedbackId}`);
+      setFeedbackData(prev => prev.filter(f => (f._id || f.id) !== feedbackId));
+      fetchUserStatus(studentName);
+    } catch (error) {
+      console.error("Error deleting feedback", error);
+      alert("Failed to delete feedback");
+    }
   };
 
   return (
@@ -200,10 +285,37 @@ function Dashboard() {
                       <div className="profile-dropdown-card">
                         <div className="dropdown-header"><FiUser className="dropdown-icon" /><h4>Student Info</h4></div>
                         <div className="dropdown-info-item"><strong>Name:</strong> {studentName}</div>
-                        <div className="dropdown-info-item"><strong>ID:</strong> {savedId}</div>
-                        <div className="dropdown-info-item"><strong>Dept:</strong> {savedDept}</div>
-                        <div className="dropdown-info-item"><strong>Year:</strong> {savedYear}</div>
-                        <div className="dropdown-info-item"><strong>Sem:</strong> {savedSem}</div>
+                        {!isEditingProfile && (
+                          <>
+                            <div className="dropdown-info-item"><strong>ID:</strong> {savedId}</div>
+                            <div className="dropdown-info-item"><strong>Dept:</strong> {savedDept}</div>
+                            <div className="dropdown-info-item"><strong>Year:</strong> {savedYear}</div>
+                            <div className="dropdown-info-item"><strong>Sem:</strong> {savedSem}</div>
+                          </>
+                        )}
+                        {isEditingProfile && (
+                          <>
+                            <input className="modal-input" placeholder="Student ID" value={studentId} onChange={(e) => setStudentId(e.target.value)} />
+                            <input className="modal-input" placeholder="Department" value={department} onChange={(e) => setDepartment(e.target.value)} />
+                            <input className="modal-input" placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} />
+                            <input className="modal-input" placeholder="Semester" value={semester} onChange={(e) => setSemester(e.target.value)} />
+                          </>
+                        )}
+                        {!isEditingProfile && (
+                          <button className="btn-view-details" style={{ width: "100%", marginTop: "10px" }} onClick={handleProfileEdit}>
+                            Edit Profile
+                          </button>
+                        )}
+                        {isEditingProfile && (
+                          <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                            <button className="btn-view-details" style={{ flex: 1 }} onClick={handleProfileSave}>
+                              Save
+                            </button>
+                            <button className="btn-view-details" style={{ flex: 1 }} onClick={handleProfileCancel}>
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                 </div>
@@ -295,6 +407,7 @@ function Dashboard() {
                       <th style={{ padding: '16px' }}>Event Name</th>
                       <th style={{ padding: '16px' }}>Submitted On</th>
                       <th style={{ padding: '16px' }}>Status</th>
+                      <th style={{ padding: '16px' }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -313,6 +426,12 @@ function Dashboard() {
                           >
                             {item.status?.toLowerCase() === 'reviewed' ? "Reviewed" : "Pending"}
                           </span>
+                        </td>
+                        <td className="action-cell">
+                          <button className="btn-view-details edit-btn" onClick={() => handleEditFeedback(item)} aria-label="Edit feedback">
+                            <FiEdit />
+                          </button>
+                          <button className="btn-view-details delete-btn" style={{ marginLeft: "8px" }} onClick={() => handleDeleteFeedback(item)}>Delete</button>
                         </td>
                       </tr>
                     ))}
@@ -424,30 +543,42 @@ function Dashboard() {
       {showDetailModal && selectedFeedback && (
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal-box detail-modal" style={{ maxWidth: '520px', padding: '20px' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ background: '#0f172a', borderRadius: '12px', padding: '16px', border: '1px solid #1e293b', boxShadow: '0 10px 20px rgba(0,0,0,0.35)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px' }}>
-                <div style={{ fontWeight: 600 }}>Course: <span style={{ fontWeight: 400 }}>{selectedFeedback.courseName || selectedFeedback.skillName || selectedFeedback.eventName || selectedFeedback.title || "N/A"}</span></div>
-                <div style={{ fontWeight: 600 }}>Rating: <span style={{ fontWeight: 400 }}>{selectedFeedback.rating?.replace(/\/5.*/, "") || "N/A"}</span></div>
+            <div style={{ background: '#0f172a', borderRadius: '12px', padding: '18px', border: '1px solid #1e293b', boxShadow: '0 10px 20px rgba(0,0,0,0.35)' }}>
+              <div style={{ marginBottom: '12px', fontWeight: 600, fontSize: '16px', color: '#e2e8f0' }}>Feedback Details</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#94a3b8' }}>Course:</span>{" "}
+                  <span style={{ fontSize: '14px', fontWeight: 400, color: '#f1f5f9' }}>{selectedFeedback.courseName || selectedFeedback.skillName || selectedFeedback.eventName || selectedFeedback.title || "N/A"}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#94a3b8' }}>Rating:</span>{" "}
+                  <span style={{ fontSize: '14px', fontWeight: 400, color: '#f1f5f9' }}>{selectedFeedback.rating?.replace(/\/5.*/, "") || "N/A"}</span>
+                </div>
               </div>
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ fontWeight: 600, marginBottom: '6px' }}>Suggestion</div>
-                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word' }}>
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '16px', color: '#38bdf8' }}>Suggestion</div>
+                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word', fontSize: '14px', lineHeight: '1.5', color: '#e2e8f0' }}>
                   {selectedFeedback.suggestions || "No suggestions provided."}
                 </div>
-                <div style={{ marginTop: '8px', fontSize: '0.9rem' }}>
-                  <span style={{ fontWeight: 600 }}>Submitted On:</span>{" "}
-                  {selectedFeedback.createdAt ? new Date(selectedFeedback.createdAt).toLocaleString() : "N/A"}
-                </div>
               </div>
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ fontWeight: 600, marginBottom: '6px' }}>Faculty Response</div>
-                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word' }}>
-                  {selectedFeedback.response || "Response not available"}
-                </div>
-                <div style={{ marginTop: '8px', fontSize: '0.9rem' }}>
-                  <span style={{ fontWeight: 600 }}>Responded At:</span>{" "}
-                  {selectedFeedback.responseAt ? new Date(selectedFeedback.responseAt).toLocaleString() : "Not responded yet"}
-                </div>
+              <div style={{ marginBottom: '12px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#94a3b8' }}>Submitted On:</span>{" "}
+                <span style={{ fontSize: '14px', fontWeight: 400, color: '#f1f5f9' }}>
+                  {selectedFeedback.createdAt ? new Date(selectedFeedback.createdAt).toLocaleString() : "N/A"}
+                </span>
+              </div>
+
+              <div style={{ borderTop: '1px solid #1e293b', margin: '15px 0' }}></div>
+
+              <div style={{ marginBottom: '12px', fontWeight: 600, fontSize: '16px', color: '#38bdf8' }}>Faculty Response</div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word', marginBottom: '12px', fontSize: '14px', lineHeight: '1.5', color: '#e2e8f0' }}>
+                {selectedFeedback.response || "No response yet"}
+              </div>
+              <div>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#94a3b8' }}>Responded At:</span>{" "}
+                <span style={{ fontSize: '14px', fontWeight: 400, color: '#f1f5f9' }}>
+                  {selectedFeedback.responseAt ? new Date(selectedFeedback.responseAt).toLocaleString() : "-"}
+                </span>
               </div>
             </div>
             <div className="modal-actions" style={{ marginTop: '16px' }}>
@@ -458,41 +589,36 @@ function Dashboard() {
       )}
       {showReviewedModal && selectedReviewed && (
         <div className="modal-overlay" onClick={() => setShowReviewedModal(false)}>
-          <div className="modal-box detail-modal" style={{ maxWidth: '500px', padding: '25px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="detail-header" style={{ marginBottom: '20px', textAlign: 'center' }}>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{selectedReviewed.type} Feedback</h3>
-            </div>
-            <div className="detail-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
-                <span style={{ color: '#888' }}>Course / Category:</span>
-                <span style={{ fontWeight: '600' }}>{selectedReviewed.courseName || selectedReviewed.skillName || selectedReviewed.eventName || selectedReviewed.title || "N/A"}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
-                <span style={{ color: '#888' }}>Rating:</span>
-                <span style={{ color: '#4caf50', fontWeight: 'bold' }}>{selectedReviewed.rating?.replace(/\/5.*/, "") || "N/A"}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
-                <span style={{ color: '#888' }}>Submitted On:</span>
-                <span style={{ fontSize: '0.9rem' }}>{selectedReviewed.createdAt ? new Date(selectedReviewed.createdAt).toLocaleString() : "N/A"}</span>
-              </div>
-              <div style={{ marginTop: '10px' }}>
-                <h4 style={{ color: '#888', marginBottom: '8px', fontSize: '1rem' }}>Suggestion:</h4>
-                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
-                  <p style={{ margin: 0, fontSize: '0.95rem' }}>{selectedReviewed.suggestions || "No suggestions provided."}</p>
+          <div className="modal-box detail-modal" style={{ maxWidth: '500px', padding: '20px' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ background: '#0f172a', borderRadius: '12px', padding: '18px', border: '1px solid #1e293b', boxShadow: '0 10px 20px rgba(0,0,0,0.35)' }}>
+              <div style={{ fontWeight: 600, fontSize: '16px', color: '#e2e8f0', marginBottom: '10px' }}>Student Feedback</div>
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontWeight: 600, marginBottom: '6px', fontSize: '16px', color: '#38bdf8' }}>Suggestion</div>
+                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word', fontSize: '14px', lineHeight: '1.5', color: '#e2e8f0' }}>
+                  {selectedReviewed.suggestions || "No suggestions provided."}
                 </div>
               </div>
-              <div style={{ marginTop: '10px' }}>
-                <h4 style={{ color: '#888', marginBottom: '8px', fontSize: '1rem' }}>Faculty Response:</h4>
-                <div style={{ background: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
-                  <p style={{ margin: 0, fontSize: '0.95rem' }}>{selectedReviewed.response || "Response not available"}</p>
-                </div>
+              <div style={{ marginBottom: '12px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#94a3b8' }}>Submitted At:</span>{" "}
+                <span style={{ fontSize: '14px', fontWeight: 400, color: '#f1f5f9' }}>
+                  {selectedReviewed.createdAt ? new Date(selectedReviewed.createdAt).toLocaleString() : "N/A"}
+                </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #333', paddingTop: '8px' }}>
-                <span style={{ color: '#888' }}>Responded At:</span>
-                <span style={{ fontSize: '0.9rem' }}>{selectedReviewed.responseAt ? new Date(selectedReviewed.responseAt).toLocaleString() : "Response not available"}</span>
+
+              <div style={{ borderTop: '1px solid #1e293b', margin: '15px 0' }}></div>
+
+              <div style={{ fontWeight: 600, fontSize: '16px', color: '#38bdf8', marginBottom: '10px' }}>Faculty Response</div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '6px', border: '1px solid #222', overflowWrap: 'break-word', wordWrap: 'break-word', marginBottom: '12px', fontSize: '14px', lineHeight: '1.5', color: '#ffffff' }}>
+                {selectedReviewed.response || "No response yet"}
+              </div>
+              <div>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#94a3b8' }}>Responded At:</span>{" "}
+                <span style={{ fontSize: '14px', fontWeight: 400, color: '#f1f5f9' }}>
+                  {selectedReviewed.responseAt ? new Date(selectedReviewed.responseAt).toLocaleString() : "-"}
+                </span>
               </div>
             </div>
-            <div className="modal-actions" style={{ marginTop: '20px' }}>
+            <div className="modal-actions" style={{ marginTop: '16px' }}>
               <button className="btn-save" style={{ width: '100%' }} onClick={() => setShowReviewedModal(false)}>Close</button>
             </div>
           </div>

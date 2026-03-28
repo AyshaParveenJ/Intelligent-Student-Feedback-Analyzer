@@ -6,20 +6,14 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const feedbackRoutes = require("./routes/FeedbackRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Student Profile Model
-const StudentProfile = mongoose.model("StudentProfile", new mongoose.Schema({
-    email: { type: String, unique: true },
-    studentId: String,
-    department: String,
-    year: String,
-    semester: String
-}));
+const StudentProfile = require("./models/StudentProfile");
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
@@ -28,6 +22,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use("/api/auth", authRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/faculty", facultyRoutes);
+app.use("/api/students", studentRoutes);
 
 // --- NEW ROUTES START ---
 app.post("/api/student/profile", async (req, res) => {

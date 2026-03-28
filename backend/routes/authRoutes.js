@@ -3,40 +3,47 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Faculty = require("../models/Faculty");
+const StudentProfile = require("../models/StudentProfile");
 
 const router = express.Router();
 
 
 // ================= REGISTER =================
 router.post("/register", async (req, res) => {
-  try {
-    const { fullName, studentId, password } = req.body;
+  return res.status(403).json({ message: "Student self-registration is disabled. Please contact admin." });
+});
 
-    if (!fullName || !studentId || !password) {
+router.post("/admin-create-student", async (req, res) => {
+  try {
+    const { fullName, studentId, password, department, year, semester } = req.body;
+
+    if (!fullName || !studentId || !password || !department || !year || !semester) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const userExists = await User.findOne({ studentId });
-
     if (userExists) {
       return res.status(400).json({ message: "Student already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = new User({
       fullName,
       studentId,
       password: hashedPassword,
       role: "student"
     });
-
     await user.save();
 
-    res.status(201).json({ message: "Account Created Successfully" });
+    await StudentProfile.findOneAndUpdate(
+      { email: studentId },
+      { email: studentId, studentId, department, year, semester },
+      { upsert: true, new: true }
+    );
 
+    res.status(201).json({ message: "Student created successfully" });
   } catch (error) {
-    console.log("Register Error:", error);
+    console.log("Admin Create Student Error:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
