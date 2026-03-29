@@ -21,13 +21,18 @@ function FacultyDashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [historySelected, setHistorySelected] = useState(null);
   const [response, setResponse] = useState("");
-  const [dashboardStats, setDashboardStats] = useState({ total: 0, pending: 0, reviewed: 0 });
+  const [dashboardStats, setDashboardStats] = useState({ total: null, pending: null, reviewed: null });
+  const [facultyIdentity, setFacultyIdentity] = useState(null);
 
   useEffect(() => {
     const name = localStorage.getItem("fullName");
     const dept = localStorage.getItem("department");
     if (name) setFacultyName(name);
     if (dept) setDepartment(dept);
+    const email = localStorage.getItem("loginEmail");
+    if (name || email) {
+      setFacultyIdentity({ name: name || "", email: email || "" });
+    }
   }, []);
 
   const handleLogout = () => {
@@ -63,12 +68,11 @@ function FacultyDashboard() {
     }
   };
 
-  const fetchStats = async () => {
+  const fetchStats = async (faculty) => {
     try {
       const params = {};
-      const facultyEmail = localStorage.getItem("loginEmail");
-      if (facultyName) params.facultyName = facultyName;
-      if (facultyEmail) params.facultyEmail = facultyEmail;
+      if (faculty?.name) params.facultyName = faculty.name;
+      if (faculty?.email) params.facultyEmail = faculty.email;
       const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/stats", { params });
       setDashboardStats(res.data);
     } catch (error) {
@@ -89,7 +93,11 @@ function FacultyDashboard() {
   };
 
   useEffect(() => { fetchFeedback(); }, []);
-  useEffect(() => { fetchStats(); }, [facultyName]);
+  useEffect(() => {
+    if (facultyIdentity && facultyIdentity.email) {
+      fetchStats(facultyIdentity);
+    }
+  }, [facultyIdentity]);
 
   useEffect(() => {
     applyFacultyFilter();
@@ -112,7 +120,9 @@ function FacultyDashboard() {
       });
 
       setFeedbacks(prev => prev.map(f => f._id === selectedFeedback._id ? { ...f, status: "reviewed", response, responseAt, reviewedAt } : f));
-      await fetchStats();
+      if (facultyIdentity && facultyIdentity.email) {
+        await fetchStats(facultyIdentity);
+      }
       alert("Response sent successfully!");
       setSelectedFeedback(null);
       setResponse("");
