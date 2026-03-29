@@ -66,7 +66,9 @@ function FacultyDashboard() {
   const fetchStats = async () => {
     try {
       const params = {};
-      if (facultyName) params.faculty = facultyName;
+      const facultyEmail = localStorage.getItem("loginEmail");
+      if (facultyName) params.facultyName = facultyName;
+      if (facultyEmail) params.facultyEmail = facultyEmail;
       const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/stats", { params });
       setDashboardStats(res.data);
     } catch (error) {

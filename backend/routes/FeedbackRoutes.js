@@ -61,13 +61,28 @@ router.get("/stats", async (req, res) => {
     console.log("Statuses:", allFeedbacks.map(f => f.status));
 
     const baseMatch = {};
-    const faculty = (req.query.faculty || "").toString().trim();
-    if (faculty) {
-      const safe = escapeRegex(faculty);
-      baseMatch.$or = [
-        { faculty: { $regex: `^${safe}$`, $options: "i" } },
-        { facultyName: { $regex: `^${safe}$`, $options: "i" } }
-      ];
+    const facultyId = (req.query.facultyId || "").toString().trim();
+    const facultyEmail = (req.query.facultyEmail || "").toString().trim();
+    const facultyName = (req.query.facultyName || req.query.faculty || "").toString().trim();
+    const orFilters = [];
+
+    if (facultyId) {
+      orFilters.push({ facultyId });
+    }
+    if (facultyEmail) {
+      const safeEmail = escapeRegex(facultyEmail);
+      orFilters.push({ facultyEmail: { $regex: `^${safeEmail}$`, $options: "i" } });
+    }
+    if (facultyName) {
+      const safeName = escapeRegex(facultyName);
+      orFilters.push(
+        { faculty: { $regex: `^${safeName}$`, $options: "i" } },
+        { facultyName: { $regex: `^${safeName}$`, $options: "i" } }
+      );
+    }
+
+    if (orFilters.length) {
+      baseMatch.$or = orFilters;
     }
 
     const total = await Feedback.countDocuments(baseMatch);
