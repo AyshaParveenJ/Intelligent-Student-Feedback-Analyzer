@@ -52,6 +52,32 @@ router.get("/all", async (req, res) => {
   }
 });
 
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// GET DASHBOARD STATS
+router.get("/stats", async (req, res) => {
+  try {
+    const baseMatch = {};
+    const faculty = (req.query.faculty || "").toString().trim();
+    if (faculty) {
+      const safe = escapeRegex(faculty);
+      baseMatch.$or = [
+        { faculty: { $regex: `^${safe}$`, $options: "i" } },
+        { facultyName: { $regex: `^${safe}$`, $options: "i" } }
+      ];
+    }
+
+    const total = await Feedback.countDocuments(baseMatch);
+    const pending = await Feedback.countDocuments({ ...baseMatch, status: "pending" });
+    const reviewed = await Feedback.countDocuments({ ...baseMatch, status: "reviewed" });
+
+    res.json({ total, pending, reviewed });
+  } catch (error) {
+    console.error("Error fetching feedback stats:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 // UPDATE FEEDBACK (The missing part to fix your error)
 router.patch("/:id", async (req, res) => {
   try {
@@ -59,6 +85,7 @@ router.patch("/:id", async (req, res) => {
       status,
       response,
       responseAt,
+      reviewedAt,
       type,
       title,
       faculty,
@@ -67,12 +94,18 @@ router.patch("/:id", async (req, res) => {
     } = req.body;
 
     const update = {};
-    if (status !== undefined) update.status = status;
+    if (status !== undefined) update.status = String(status).toLowerCase().trim();
     if (response !== undefined) update.response = response;
+    if (reviewedAt !== undefined) {
+      update.reviewedAt = reviewedAt;
+    }
     if (responseAt !== undefined) {
       update.responseAt = responseAt;
     } else if (response !== undefined) {
       update.responseAt = new Date();
+    }
+    if (update.status === "reviewed" && update.reviewedAt === undefined) {
+      update.reviewedAt = new Date();
     }
     if (type !== undefined) update.type = type;
     if (title !== undefined) update.title = title;

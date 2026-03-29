@@ -21,6 +21,7 @@ function FacultyDashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [historySelected, setHistorySelected] = useState(null);
   const [response, setResponse] = useState("");
+  const [dashboardStats, setDashboardStats] = useState({ total: 0, pending: 0, reviewed: 0 });
 
   useEffect(() => {
     const name = localStorage.getItem("fullName");
@@ -62,6 +63,17 @@ function FacultyDashboard() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const params = {};
+      if (facultyName) params.faculty = facultyName;
+      const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/stats", { params });
+      setDashboardStats(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const applyFacultyFilter = () => {
     const name = (facultyName || "").trim().toLowerCase();
     let data = [...feedbacks];
@@ -75,6 +87,7 @@ function FacultyDashboard() {
   };
 
   useEffect(() => { fetchFeedback(); }, []);
+  useEffect(() => { fetchStats(); }, [facultyName]);
 
   useEffect(() => {
     applyFacultyFilter();
@@ -88,13 +101,16 @@ function FacultyDashboard() {
     if (!selectedFeedback) return;
     try {
       const responseAt = new Date().toISOString();
+      const reviewedAt = new Date().toISOString();
       await axios.patch(`https://student-feedback-backend-bia4.onrender.com/api/feedback/${selectedFeedback._id}`, {
-        status: "Reviewed",
+        status: "reviewed",
         response: response,
-        responseAt: responseAt
+        responseAt: responseAt,
+        reviewedAt: reviewedAt
       });
 
-      setFeedbacks(prev => prev.map(f => f._id === selectedFeedback._id ? { ...f, status: "Reviewed", response, responseAt } : f));
+      setFeedbacks(prev => prev.map(f => f._id === selectedFeedback._id ? { ...f, status: "reviewed", response, responseAt, reviewedAt } : f));
+      await fetchStats();
       alert("Response sent successfully!");
       setSelectedFeedback(null);
       setResponse("");
@@ -119,6 +135,9 @@ function FacultyDashboard() {
   const totalFeedback = filtered.length;
   const reviewedCount = filtered.filter(f => (f.response || "").trim().length > 0 || (f.status || "").toLowerCase().trim() === "reviewed").length;
   const pendingCount = totalFeedback - reviewedCount;
+  const dashboardTotal = dashboardStats.total ?? totalFeedback;
+  const dashboardPending = dashboardStats.pending ?? pendingCount;
+  const dashboardReviewed = dashboardStats.reviewed ?? reviewedCount;
   const avgRating = totalFeedback > 0
     ? (filtered.reduce((acc, curr) => acc + (ratingsMap[curr.rating] || 0), 0) / totalFeedback).toFixed(1)
     : "0.0";
@@ -192,9 +211,9 @@ function FacultyDashboard() {
               </div>
             </header>
             <div className="admin-stats-grid">
-              <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{totalFeedback}</h4></div></div>
-              <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiClock /></div><div><p className="stat-label">Pending Feedback</p><h4 className="stat-value">{pendingCount}</h4></div></div>
-              <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiCheckSquare /></div><div><p className="stat-label">Reviewed Feedback</p><h4 className="stat-value">{reviewedCount}</h4></div></div>
+              <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{dashboardTotal}</h4></div></div>
+              <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiClock /></div><div><p className="stat-label">Pending Feedback</p><h4 className="stat-value">{dashboardPending}</h4></div></div>
+              <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiCheckSquare /></div><div><p className="stat-label">Reviewed Feedback</p><h4 className="stat-value">{dashboardReviewed}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating}</h4></div></div>
             </div>
             <div className="charts-row">

@@ -28,6 +28,7 @@ function AdminDashboard() {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   
   const [reviewedIds, setReviewedIds] = useState(new Set());
+  const [dashboardStats, setDashboardStats] = useState({ total: 0, pending: 0, reviewed: 0 });
   const [userRole, setUserRole] = useState("Student");
   const [userName, setUserName] = useState("");
   const [userStudentId, setUserStudentId] = useState("");
@@ -49,7 +50,7 @@ function AdminDashboard() {
       
       const reviewed = new Set(
         res.data
-          .filter(f => f.status === 'reviewed')
+          .filter(f => (f.status || "").toLowerCase().trim() === "reviewed")
           .map(f => f._id)
       );
       setReviewedIds(reviewed);
@@ -72,6 +73,13 @@ function AdminDashboard() {
       } else {
         setStudentIdByEmail({});
       }
+    } catch (error) { console.log(error); }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/stats");
+      setDashboardStats(res.data);
     } catch (error) { console.log(error); }
   };
 
@@ -100,7 +108,7 @@ function AdminDashboard() {
     setRecentFiltered(data);
   }, [recentSearch, recentDate, recentYear, recentType, feedbacks]);
 
-  useEffect(() => { fetchFeedback(); }, []);
+  useEffect(() => { fetchFeedback(); fetchStats(); }, []);
   
   useEffect(() => {
     if (activeMenu === "view") applyFilters();
@@ -217,6 +225,9 @@ function AdminDashboard() {
 
   const pendingCount = feedbacks.length - reviewedIds.size;
   const reviewedCount = reviewedIds.size;
+  const dashboardTotal = dashboardStats.total ?? total;
+  const dashboardPending = dashboardStats.pending ?? pendingCount;
+  const dashboardReviewed = dashboardStats.reviewed ?? reviewedCount;
 
   const getRatingClass = (rating) => {
     if (!rating) return "";
@@ -254,13 +265,13 @@ function AdminDashboard() {
         {(activeMenu === "dashboard" || activeMenu === "analytics") && (
           <div className="admin-front-page">
             <div className="admin-stats-grid">
-              <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{total}</h4></div></div>
+              <div className="stat-card-admin"><div className="stat-icon-box bg-blue"><FiMessageSquare /></div><div><p className="stat-label">Total Feedback</p><h4 className="stat-value">{activeMenu === "dashboard" ? dashboardTotal : total}</h4></div></div>
               <div className="stat-card-admin"><div className="stat-icon-box bg-green"><FiStar /></div><div><p className="stat-label">Average Rating</p><h4 className="stat-value">{avgRating}</h4></div></div>
               
               {activeMenu === "dashboard" ? (
                 <>
-                  <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiAlertTriangle /></div><div><p className="stat-label">Pending</p><h4 className="stat-value">{pendingCount}</h4></div></div>
-                  <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiCheckSquare /></div><div><p className="stat-label">Reviewed</p><h4 className="stat-value">{reviewedCount}</h4></div></div>
+                  <div className="stat-card-admin"><div className="stat-icon-box bg-purple"><FiAlertTriangle /></div><div><p className="stat-label">Pending</p><h4 className="stat-value">{dashboardPending}</h4></div></div>
+                  <div className="stat-card-admin"><div className="stat-icon-box bg-orange"><FiCheckSquare /></div><div><p className="stat-label">Reviewed</p><h4 className="stat-value">{dashboardReviewed}</h4></div></div>
                 </>
               ) : (
                 <>
