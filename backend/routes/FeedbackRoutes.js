@@ -57,6 +57,9 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // GET DASHBOARD STATS
 router.get("/stats", async (req, res) => {
   try {
+    const allFeedbacks = await Feedback.find();
+    console.log("Statuses:", allFeedbacks.map(f => f.status));
+
     const baseMatch = {};
     const faculty = (req.query.faculty || "").toString().trim();
     if (faculty) {
@@ -68,8 +71,14 @@ router.get("/stats", async (req, res) => {
     }
 
     const total = await Feedback.countDocuments(baseMatch);
-    const pending = await Feedback.countDocuments({ ...baseMatch, status: "pending" });
-    const reviewed = await Feedback.countDocuments({ ...baseMatch, status: "reviewed" });
+    const pending = await Feedback.countDocuments({
+      ...baseMatch,
+      status: { $regex: /^pending$/i }
+    });
+    const reviewed = await Feedback.countDocuments({
+      ...baseMatch,
+      status: { $regex: /^reviewed$/i }
+    });
 
     res.json({ total, pending, reviewed });
   } catch (error) {

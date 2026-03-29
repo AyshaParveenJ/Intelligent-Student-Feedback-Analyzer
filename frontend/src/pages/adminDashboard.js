@@ -79,7 +79,12 @@ function AdminDashboard() {
   const fetchStats = async () => {
     try {
       const res = await axios.get("https://student-feedback-backend-bia4.onrender.com/api/feedback/stats");
-      setDashboardStats(res.data);
+      const data = res.data || {};
+      setDashboardStats({
+        total: data.total,
+        pending: data.pending,
+        reviewed: data.reviewed
+      });
     } catch (error) { console.log(error); }
   };
 
