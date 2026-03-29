@@ -75,7 +75,7 @@ function Login() {
         {/* RIGHT LOGIN */}
         <div className="right-panel">
           <div className="portal-card">
-            <h2>Portal Login</h2>
+            <h2>Login</h2>
 
             <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
               <input
