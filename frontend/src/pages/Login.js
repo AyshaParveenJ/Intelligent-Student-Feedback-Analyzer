@@ -32,32 +32,75 @@ function Login() {
 
   return (
     <div className="portal-container">
-      <div className="portal-card">
-        <h2>Portal Login</h2>
 
-        {/* Wrapping in a form with autoComplete="off" prevents the browser 
-            from injecting saved usernames/passwords automatically.
-        */}
-        <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
-          <input
-            type="text"
-            placeholder="Email Address"
-            autoComplete="one-time-code" 
-            /* "one-time-code" is a trick to stop aggressive browser autofill */
-            onChange={(e) => setStudentId(e.target.value)}
-          />
+      <div className="center-frame">
 
-          <input
-            type="password"
-            placeholder="Password"
-            autoComplete="new-password" 
-            /* "new-password" prevents the browser from suggesting saved passwords */
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        {/* LEFT CONTENT */}
+        <div className="left-panel">
+          <h1>
+            Welcome to the <span>Portal</span>
+          </h1>
 
-          <button type="button" onClick={handleLogin}>SIGN IN</button>
-        </form>
+          <p>
+            Sign in to access insights, analyze feedback, and drive meaningful improvements.
+          </p>
+
+          <div className="features">
+            <div className="feature-item">
+              <div className="feature-icon">📊</div>
+              <div>
+                <strong>Data-Driven Insights</strong><br />
+                Analyze feedback with smart visualizations
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-icon">🔐</div>
+              <div>
+                <strong>Secure & Reliable</strong><br />
+                Your data is protected with enterprise-grade security
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-icon">👥</div>
+              <div>
+                <strong>For Everyone</strong><br />
+                One portal for Admins, Students, and Faculty
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT LOGIN */}
+        <div className="right-panel">
+          <div className="portal-card">
+            <h2>Portal Login</h2>
+
+            <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="text"
+                placeholder="Email Address"
+                autoComplete="one-time-code"
+                onChange={(e) => setStudentId(e.target.value)}
+              />
+
+              <input
+                type="password"
+                placeholder="Password"
+                autoComplete="new-password"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
+              <button type="button" onClick={handleLogin}>
+                SIGN IN
+              </button>
+            </form>
+          </div>
+        </div>
+
       </div>
+
     </div>
   );
 }
