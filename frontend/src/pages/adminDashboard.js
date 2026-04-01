@@ -263,7 +263,7 @@ function AdminDashboard() {
       <div className="main-content">
         {activeMenu === "dashboard" && (
           <div className="admin-header-flex">
-              <h2>Welcome, Admin 👋</h2>
+              <h2>Welcome Admin </h2>
           </div>
         )}
 

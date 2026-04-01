@@ -204,7 +204,7 @@ function FacultyDashboard() {
           <>
             <header className="dashboard-header">
               <div className="header-left">
-                <h2>Welcome, {facultyName || "Faculty"} 👋</h2>
+                <h2>Welcome  {facultyName || "Faculty"} </h2>
               </div>
               <div className="profile-container" onClick={(e) => e.stopPropagation()}>
                 <div className="profile-avatar-clickable" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>

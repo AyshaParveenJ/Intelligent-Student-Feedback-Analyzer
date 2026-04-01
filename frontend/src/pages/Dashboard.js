@@ -274,7 +274,7 @@ function Dashboard() {
             <>
               <header className="dashboard-header">
                 <div className="header-left">
-                    <h2>Welcome, {studentName} 👋</h2>
+                    <h2>Welcome  {studentName}  </h2>
                     <p className="sub-text">Academic Overview</p>
                 </div>
                 <div className="profile-container" onClick={(e) => e.stopPropagation()}>
@@ -368,7 +368,7 @@ function Dashboard() {
                     <div className="ai-content">
                       <div>
                         <strong>Thank you for your feedback!</strong>
-                        <p className="sub-text">Your inputs help us improve the academic quality at AYS.</p>
+                        <p className="sub-text">Your inputs help us improve the academic quality at BIT.</p>
                       </div>
                     </div>
                   </div>
